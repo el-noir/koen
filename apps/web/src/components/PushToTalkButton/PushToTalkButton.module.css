@@ -1,0 +1,57 @@
+/* apps/web/src/components/PushToTalkButton/PushToTalkButton.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  width: 100%;
+}
+
+.button {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: none;
+  background: #FFD700;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:active, .recording {
+  transform: scale(0.9);
+  background: #FFC000;
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+}
+
+.icon {
+  width: 48px;
+  height: 48px;
+  color: #111;
+}
+
+.status {
+  margin-top: 1.5rem;
+  font-weight: 600;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.75rem;
+}
+
+.recordingStatus {
+  color: #FF4444;
+  animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+  from { opacity: 0.6; }
+  to { opacity: 1; }
+}

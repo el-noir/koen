@@ -1,0 +1,101 @@
+// KOEN — Prisma Schema
+// Based on Engineering Constraints v6, §3.1 (Data Model)
+// Designed for multi-user and multi-project from day one.
+// Stage 1 uses one user — schema already supports a team of 20 without changes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum ProjectStage {
+  foundations
+  framing
+  cladding
+  finishing
+}
+
+enum DataCategory {
+  task
+  material
+  hours
+  event
+  note
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────────────────────────────────────
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  language  String   @default("en") // "en" or "es" — Stage 1B
+  createdAt DateTime @default(now())
+
+  projects Project[]
+  records  VoiceRecord[]
+
+  @@map("users")
+}
+
+model Project {
+  id        String       @id @default(uuid())
+  userId    String
+  name      String
+  client    String
+  startDate DateTime
+  stage     ProjectStage
+  createdAt DateTime     @default(now())
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  records VoiceRecord[]
+
+  @@map("projects")
+}
+
+/// Raw voice recording + transcript. Stored separately from extracted data.
+/// If extraction logic improves, old recordings can be reprocessed without data loss.
+model VoiceRecord {
+  id              String   @id @default(uuid())
+  projectId       String
+  userId          String
+  audioUrl        String   // Local path (Stage 1) or S3/R2 URL (Stage 2+)
+  transcript      String
+  language        String   // "en" or "es"
+  confidenceScore Float    @default(0)
+  createdAt       DateTime @default(now())
+
+  project   Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  extracted ExtractedData[]
+
+  @@map("voice_records")
+}
+
+/// Structured data extracted from a voice recording.
+/// One VoiceRecord can produce multiple ExtractedData rows (one per category detected).
+model ExtractedData {
+  id            String       @id @default(uuid())
+  voiceRecordId String
+  projectId     String
+  userId        String
+  category      DataCategory
+  content       Json         // Flexible per category: { description, start, end, amount, unit, ... }
+  confidence    Float        @default(0)
+  confirmed     Boolean      @default(false) // true = worker confirmed via ConfirmCard
+  createdAt     DateTime     @default(now())
+
+  voiceRecord VoiceRecord @relation(fields: [voiceRecordId], references: [id], onDelete: Cascade)
+
+  @@map("extracted_data")
+}
