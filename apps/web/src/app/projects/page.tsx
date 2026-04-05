@@ -2,17 +2,32 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Plus, Folder, Calendar, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
-import { Project } from '@koen/types';
+import { CreateProjectDto, Project, ProjectStage } from '@koen/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const PROJECT_STAGES: ProjectStage[] = ['foundations', 'framing', 'cladding', 'finishing'];
+
+const DEFAULT_PROJECT_FORM: CreateProjectDto = {
+  name: '',
+  client: '',
+  startDate: new Date().toISOString().split('T')[0],
+  stage: 'framing',
+};
+
 export default function ProjectsPage() {
+  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [projectForm, setProjectForm] = useState<CreateProjectDto>(DEFAULT_PROJECT_FORM);
 
   useEffect(() => {
     async function load() {
@@ -28,17 +43,144 @@ export default function ProjectsPage() {
     load();
   }, []);
 
+  async function handleCreateProject(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setCreateError(null);
+
+    try {
+      const project = await api.post<Project>('/projects', projectForm);
+      setProjects((current) => [project, ...current]);
+      setProjectForm(DEFAULT_PROJECT_FORM);
+      setShowCreateForm(false);
+      router.push(`/projects/${project.id}`);
+    } catch (error) {
+      console.error(error);
+      setCreateError('Could not create the project yet. Check the API and try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  function openCreateForm() {
+    setCreateError(null);
+    setShowCreateForm(true);
+  }
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-10">
-      <header className="flex justify-between items-center mb-10">
+      <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">KOEN</h1>
           <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">Construction Assistant</p>
         </div>
-        <Button className="font-bold shadow-lg bg-yellow-400 hover:bg-yellow-500 text-black">
+        <Button
+          type="button"
+          className="font-bold shadow-lg bg-yellow-400 hover:bg-yellow-500 text-black"
+          onClick={openCreateForm}
+        >
           <Plus className="mr-2 h-4 w-4" /> NEW PROJECT
         </Button>
       </header>
+
+      {showCreateForm && (
+        <Card className="mb-8 border-yellow-500/30 bg-card/80 shadow-lg">
+          <CardHeader>
+            <CardTitle>Start a New Site</CardTitle>
+            <CardDescription>
+              Create the job site first, then we can drop straight into voice capture.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="grid gap-4 md:grid-cols-2" onSubmit={handleCreateProject}>
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Project name</span>
+                <input
+                  required
+                  value={projectForm.name}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({ ...current, name: event.target.value }))
+                  }
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none ring-offset-background transition focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
+                  placeholder="Bendigo Renovation"
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Client</span>
+                <input
+                  required
+                  value={projectForm.client}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({ ...current, client: event.target.value }))
+                  }
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none ring-offset-background transition focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
+                  placeholder="Alonso Avalos"
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Start date</span>
+                <input
+                  required
+                  type="date"
+                  value={projectForm.startDate}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({ ...current, startDate: event.target.value }))
+                  }
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none ring-offset-background transition focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
+                />
+              </label>
+
+              <label className="space-y-2">
+                <span className="text-sm font-medium">Stage</span>
+                <select
+                  value={projectForm.stage}
+                  onChange={(event) =>
+                    setProjectForm((current) => ({
+                      ...current,
+                      stage: event.target.value as ProjectStage,
+                    }))
+                  }
+                  className="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm outline-none ring-offset-background transition focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20"
+                >
+                  {PROJECT_STAGES.map((stage) => (
+                    <option key={stage} value={stage}>
+                      {stage.charAt(0).toUpperCase() + stage.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <div className="md:col-span-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-muted-foreground">
+                  {createError ?? 'Keep it light: you can refine project details later.'}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowCreateForm(false);
+                      setCreateError(null);
+                    }}
+                    disabled={submitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    className="bg-yellow-400 font-bold text-black hover:bg-yellow-500"
+                    disabled={submitting}
+                  >
+                    {submitting ? 'Creating...' : 'Create Project'}
+                  </Button>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -90,7 +232,12 @@ export default function ProjectsPage() {
               <p className="text-muted-foreground text-sm max-w-[250px] mb-6">
                 Connect a site to start your first voice-captured log.
               </p>
-              <Button variant="outline" className="font-bold border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10">
+              <Button
+                type="button"
+                variant="outline"
+                className="font-bold border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10"
+                onClick={openCreateForm}
+              >
                 CREATE FIRST PROJECT
               </Button>
             </div>

@@ -26,6 +26,18 @@ export const api = {
     return parseResponse<T>(response);
   },
 
+  async post<T = unknown>(endpoint: string, body: unknown) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    return parseResponse<T>(response);
+  },
+
   async patch<T = unknown>(endpoint: string, body: unknown) {
     const response = await fetch(`${API_BASE}${endpoint}`, {
       method: 'PATCH',

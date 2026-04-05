@@ -15,8 +15,22 @@ describe('AppController', () => {
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return the KOEN API status payload', () => {
+      expect(appController.getRoot()).toEqual({
+        name: 'KOEN API',
+        stage: 'stage-1',
+        status: 'ok',
+        docsPath: '/api/docs',
+        healthPath: '/api/health',
+      });
+    });
+
+    it('should return the KOEN API health payload', () => {
+      expect(appController.getHealth()).toMatchObject({
+        status: 'ok',
+        service: 'koen-api',
+        stage: 'stage-1',
+      });
     });
   });
 });
