@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { unlink } from 'fs/promises';
 import { PrismaService } from '../../database/prisma.service';
 import { WhisperService } from './whisper.service';
 import { ExtractorService } from './extractor.service';
@@ -27,6 +28,10 @@ export class AiExtractService {
       where: { id: recordId },
     });
     if (!record) return;
+    if (!record.audioUrl) {
+      this.logger.warn(`Record ${recordId} has no temporary audio path to process.`);
+      return;
+    }
 
     try {
       // 1. Transcribe audio using Groq Whisper
@@ -69,6 +74,28 @@ export class AiExtractService {
       this.logger.log(`Finished processing record ${recordId}`);
     } catch (err) {
       this.logger.error(`Failed to process record ${recordId}`, err);
+    } finally {
+      await this.cleanupTemporaryAudio(recordId, record.audioUrl);
+    }
+  }
+
+  private async cleanupTemporaryAudio(recordId: string, audioPath: string) {
+    try {
+      await unlink(audioPath);
+    } catch (err) {
+      const fileError = err as NodeJS.ErrnoException;
+      if (fileError.code !== 'ENOENT') {
+        this.logger.warn(`Could not remove temporary audio for record ${recordId}: ${fileError.message}`);
+      }
+    }
+
+    try {
+      await this.prisma.voiceRecord.update({
+        where: { id: recordId },
+        data: { audioUrl: '' },
+      });
+    } catch (err) {
+      this.logger.warn(`Could not clear audio path for record ${recordId}`, err as Error);
     }
   }
 }

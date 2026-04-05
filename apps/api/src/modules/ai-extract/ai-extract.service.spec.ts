@@ -1,4 +1,9 @@
+jest.mock('fs/promises', () => ({
+  unlink: jest.fn().mockResolvedValue(undefined),
+}));
+
 import { ConfigService } from '@nestjs/config';
+import { unlink } from 'fs/promises';
 import { PrismaService } from '../../database/prisma.service';
 import { AiExtractService } from './ai-extract.service';
 import { ExtractorService } from './extractor.service';
@@ -96,6 +101,11 @@ describe('AiExtractService', () => {
         confidenceScore: 0.95,
       },
     });
+    expect(unlink).toHaveBeenCalledWith('uploads/record.webm');
+    expect(prisma.voiceRecord.update).toHaveBeenNthCalledWith(2, {
+      where: { id: 'record-1' },
+      data: { audioUrl: '' },
+    });
     expect(prisma.extractedData.create).toHaveBeenNthCalledWith(1, {
       data: {
         voiceRecordId: 'record-1',
@@ -124,6 +134,22 @@ describe('AiExtractService', () => {
     prisma.voiceRecord.findUnique.mockResolvedValue(null);
 
     await service.processRecord('missing-record');
+
+    expect(whisperService.transcribe).not.toHaveBeenCalled();
+    expect(prisma.voiceRecord.update).not.toHaveBeenCalled();
+    expect(prisma.extractedData.create).not.toHaveBeenCalled();
+  });
+
+  it('returns quietly when the record has no temporary audio path', async () => {
+    prisma.voiceRecord.findUnique.mockResolvedValue({
+      id: 'record-2',
+      projectId: 'project-1',
+      userId: 'stage1-user-id',
+      audioUrl: '',
+      language: 'en',
+    });
+
+    await service.processRecord('record-2');
 
     expect(whisperService.transcribe).not.toHaveBeenCalled();
     expect(prisma.voiceRecord.update).not.toHaveBeenCalled();

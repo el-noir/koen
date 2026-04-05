@@ -69,7 +69,7 @@ model VoiceRecord {
   id              String   @id @default(uuid())
   projectId       String
   userId          String
-  audioUrl        String   // Local path (Stage 1) or S3/R2 URL (Stage 2+)
+  audioUrl        String   // Temp path during processing in Stage 1, durable URL in later stages
   transcript      String
   language        String   // "en" or "es"
   confidenceScore Float    @default(0)
