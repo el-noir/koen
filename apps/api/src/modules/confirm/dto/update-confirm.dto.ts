@@ -10,5 +10,5 @@ export class UpdateExtractedDataDto {
   @ApiProperty({ example: { description: 'Updated task' }, required: false })
   @IsObject()
   @IsOptional()
-  content?: any;
+  content?: Record<string, unknown>;
 }
