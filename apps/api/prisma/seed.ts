@@ -1,13 +1,14 @@
 import { PrismaClient } from '@prisma/client';
+import { STAGE1_USER_ID } from '../src/constants/stage1-user';
 
 const prisma = new PrismaClient();
 
 async function main() {
   const user = await prisma.user.upsert({
-    where: { id: 'stage1-user-id' },
+    where: { id: STAGE1_USER_ID },
     update: {},
     create: {
-      id: 'stage1-user-id',
+      id: STAGE1_USER_ID,
       email: 'koen@example.com',
       name: 'Stage 1 User',
     },

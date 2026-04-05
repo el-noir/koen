@@ -12,9 +12,9 @@ import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { STAGE1_USER_ID } from '../../constants/stage1-user';
 
 // TODO Stage 3: Replace hardcoded userId with @CurrentUser() from JWT guard
-const STAGE1_USER_ID = 'stage1-user';
 
 @ApiTags('projects')
 @Controller('projects')

@@ -2,8 +2,7 @@ import { Controller, Patch, Param, Body, ParseUUIDPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ConfirmService } from './confirm.service';
 import { UpdateExtractedDataDto } from './dto/update-confirm.dto';
-
-const STAGE1_USER_ID = 'stage1-user';
+import { STAGE1_USER_ID } from '../../constants/stage1-user';
 
 @ApiTags('confirm')
 @Controller('confirm')

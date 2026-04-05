@@ -14,8 +14,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { RecordsService } from './records.service';
 import { CreateRecordDto } from './dto/create-record.dto';
-
-const STAGE1_USER_ID = 'stage1-user';
+import { STAGE1_USER_ID } from '../../constants/stage1-user';
 
 @ApiTags('records')
 @Controller('records')
