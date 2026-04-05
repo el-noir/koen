@@ -48,5 +48,6 @@ The API now fails fast during startup if:
 ## Notes
 
 - Stage 1 currently uses a hardcoded user id in the controllers.
+- Stage 1 treats uploaded audio as temporary processing input only. The API keeps the transcript and extracted data, then removes the temporary audio file.
 - Prisma schema lives at `prisma/schema.prisma`.
 - Types are maintained locally in this app and in the web app. There is no shared types package in the current repo structure.

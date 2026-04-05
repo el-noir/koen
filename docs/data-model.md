@@ -33,11 +33,11 @@ Fields:
 
 ### VoiceRecord
 
-Stores the raw uploaded audio and its transcript.
+Stores transcript-focused record data for a submitted voice note.
 
 Fields:
 
-- `audioUrl`
+- `audioUrl` (temporary processing path in Stage 1)
 - `transcript`
 - `language`
 - `confidenceScore`

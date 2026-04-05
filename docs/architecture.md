@@ -12,7 +12,7 @@ The system is designed around a voice-to-structured-data workflow for constructi
 ## Backend Responsibilities
 
 - Store projects and records
-- Accept audio uploads
+- Accept audio uploads for temporary processing
 - Run transcription with Whisper
 - Run structured extraction with Groq
 - Save extracted items for later confirmation
@@ -39,7 +39,7 @@ The system is designed around a voice-to-structured-data workflow for constructi
 - Walkie-talkie interaction over form-heavy data entry
 - Simple project-centric workflow
 - Offline-friendly recording
-- Raw audio preserved so extraction can improve later
+- Stage 1 keeps transcripts and extracted data, not durable raw audio storage
 
 ## Repo Notes
 

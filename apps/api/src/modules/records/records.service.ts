@@ -14,24 +14,24 @@ export class RecordsService {
   ) {}
 
   async create(dto: CreateRecordDto, file: Express.Multer.File, userId: string) {
-    this.logger.log(`Creating record for project ${dto.projectId} — ${file.filename}`);
+    this.logger.log(`Creating record for project ${dto.projectId} - ${file.filename}`);
 
-    // Create the VoiceRecord entry first (Stage 1 uses local file path)
+    // Stage 1 keeps transcript and extracted data, not durable audio storage.
+    // The uploaded file path is temporary and cleared after processing.
     const record = await this.prisma.voiceRecord.create({
       data: {
         projectId: dto.projectId,
         userId,
-        audioUrl: file.path,      // Path on local disk (for Stage 1)
-        transcript: '',           // Filled after transcription
+        audioUrl: file.path,
+        transcript: '',
         language: dto.language,
         confidenceScore: 0,
       },
     });
 
-    // Trigger AI Extraction asynchronously
-    // In Stage 1, we return the record immediately and process in background
+    // Trigger AI extraction asynchronously and return immediately for Stage 1.
     this.aiExtractService.processRecord(record.id).catch((err) => {
-      this.logger.error(`AI Extraction failed for record ${record.id}`, err.stack);
+      this.logger.error(`AI extraction failed for record ${record.id}`, err.stack);
     });
 
     return presentRecord({ ...record, extracted: [] });

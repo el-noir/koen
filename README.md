@@ -2,7 +2,7 @@
 
 Voice-first job site assistant for construction teams.
 
-Workers record short voice notes during the day. KOEN stores the audio, transcribes it, extracts structured data, and shows the result back in a simple project workflow.
+Workers record short voice notes during the day. KOEN transcribes them, extracts structured data, and shows the result back in a simple project workflow.
 
 ## Stack
 
@@ -87,7 +87,8 @@ API docs are available at `http://localhost:4000/api/docs`.
 ## Current Product Flow
 
 1. The web app records audio from a push-to-talk button.
-2. Audio is uploaded to the API and stored as a `VoiceRecord`.
+2. Audio is uploaded to the API as a temporary processing file and linked to a `VoiceRecord`.
 3. The API transcribes the file with Groq Whisper.
 4. The transcript is sent to Groq for structured extraction.
 5. Extracted items are stored in PostgreSQL and can be confirmed later.
+6. The temporary audio file is deleted after processing in Stage 1.

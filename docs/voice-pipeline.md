@@ -29,4 +29,5 @@ The KOEN voice pipeline is a 4-step sequence designed for speed and accuracy in 
   1. Record is updated with transcript text.
   2. One entry is created in `ExtractedData` table for each entity.
   3. Items with `confidence >= threshold` are marked as `confirmed = true` automatically.
-  4. Frontend polls or refreshes to display the new items.
+  4. The temporary uploaded audio file is deleted in Stage 1.
+  5. Frontend polls or refreshes to display the new items.
