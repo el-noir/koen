@@ -6,10 +6,19 @@ function getApiBase() {
 const API_BASE = getApiBase();
 
 async function parseResponse<T>(response: Response): Promise<T> {
-  const payload = await response.json();
+  const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    const backendMessage =
+      typeof payload?.message === 'string'
+        ? payload.message
+        : Array.isArray(payload?.message)
+          ? payload.message.join(', ')
+          : typeof payload?.error === 'string'
+            ? payload.error
+            : response.statusText || 'Request failed';
+
+    throw new Error(`API Error (${response.status}): ${backendMessage}`);
   }
 
   return payload?.data ?? payload;
