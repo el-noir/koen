@@ -10,7 +10,9 @@
     "build:web": "cd apps/web && npm run build",
     "start:prod": "cd apps/api && npm run start:prod",
     "db:generate": "cd apps/api && npx prisma generate",
+    "db:push": "cd apps/api && npx prisma db push",
     "db:migrate": "cd apps/api && npx prisma migrate dev",
+    "db:migrate:deploy": "cd apps/api && npx prisma migrate deploy",
     "db:studio": "cd apps/api && npx prisma studio"
   }
 }
