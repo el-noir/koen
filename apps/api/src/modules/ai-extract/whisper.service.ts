@@ -5,15 +5,11 @@ import * as fs from 'fs';
 
 @Injectable()
 export class WhisperService {
-  private groq: Groq;
+  private readonly groq: Groq;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('groq.apiKey');
-    if (apiKey && apiKey !== 'gsk_...') {
-      this.groq = new Groq({ apiKey });
-    } else {
-      console.warn('⚠️ Groq API Key is missing or placeholder. Transcription will be disabled.');
-    }
+    const apiKey = this.configService.getOrThrow<string>('groq.apiKey');
+    this.groq = new Groq({ apiKey });
   }
 
   async transcribe(filePath: string): Promise<{ text: string; language: string }> {

@@ -4,9 +4,11 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
+import { validateEnvironment } from './config/validate-env';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
+  validateEnvironment();
   const app = await NestFactory.create(AppModule);
 
   // ── CORS ───────────────────────────────────────────────────────────────────
@@ -43,8 +45,13 @@ async function bootstrap() {
   // ── Listen ─────────────────────────────────────────────────────────────────
   const port = process.env.PORT || 4000;
   await app.listen(port);
-  logger.log(`🚀 API running on http://localhost:${port}/api`);
-  logger.log(`📖 Swagger docs at http://localhost:${port}/api/docs`);
 }
 
-bootstrap();
+bootstrap().catch((error: unknown) => {
+  const logger = new Logger('Bootstrap');
+  logger.error(
+    error instanceof Error ? error.message : 'Failed to start KOEN API.',
+    error instanceof Error ? error.stack : undefined,
+  );
+  process.exit(1);
+});

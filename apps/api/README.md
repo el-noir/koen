@@ -38,6 +38,13 @@ The API expects the root `.env` file to provide:
 - `GROQ_API_KEY`
 - `FRONTEND_URL` (optional)
 
+The API now fails fast during startup if:
+
+- `DATABASE_URL` is missing or still using the example value
+- `GROQ_API_KEY` is missing or still using the placeholder
+- `CONFIDENCE_THRESHOLD` is outside the `0` to `1` range
+- `FRONTEND_URL` is present but not a valid absolute URL
+
 ## Notes
 
 - Stage 1 currently uses a hardcoded user id in the controllers.

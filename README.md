@@ -57,6 +57,9 @@ Fill in:
 
 - `DATABASE_URL`
 - `GROQ_API_KEY`
+- `FRONTEND_URL` if your web app does not run at `http://localhost:3000`
+
+The API validates required environment variables at startup and exits early when configuration is missing or still using placeholders.
 
 ### Start Database
 

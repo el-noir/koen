@@ -6,16 +6,12 @@ import { EXTRACT_PROMPT_ES } from './prompts/extract_es.prompt';
 
 @Injectable()
 export class ExtractorService {
-  private groq: Groq;
+  private readonly groq: Groq;
   private readonly logger = new Logger(ExtractorService.name);
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('groq.apiKey');
-    if (apiKey && apiKey !== 'gsk_...') {
-      this.groq = new Groq({ apiKey });
-    } else {
-      console.warn('⚠️ Groq API Key is missing or placeholder. Extraction will be disabled.');
-    }
+    const apiKey = this.configService.getOrThrow<string>('groq.apiKey');
+    this.groq = new Groq({ apiKey });
   }
 
   async extract(transcript: string, language: string): Promise<any[]> {
@@ -25,7 +21,7 @@ export class ExtractorService {
     try {
       const completion = await this.groq.chat.completions.create({
         messages: [{ role: 'user', content: prompt }],
-        model: 'llama-3.3-70b-versatile', // High-performance model on Groq
+        model: 'llama-3.3-70b-versatile',
         response_format: { type: 'json_object' },
       });
 
