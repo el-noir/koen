@@ -4,9 +4,6 @@ export default () => ({
   database: {
     url: process.env.DATABASE_URL,
   },
-  openai: {
-    apiKey: process.env.OPENAI_API_KEY,
-  },
   groq: {
     apiKey: process.env.GROQ_API_KEY,
   },

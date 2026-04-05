@@ -14,12 +14,21 @@ export function PushToTalkButton({ onFinish }: Props) {
   return (
     <div className={styles.container}>
       <button
+        type="button"
         className={`${styles.button} ${isRecording ? styles.recording : ''}`}
-        onMouseDown={startRecording}
-        onMouseUp={stopRecording}
-        onMouseLeave={stopRecording}
-        onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
-        onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
+        onPointerDown={(e) => {
+          e.preventDefault();
+          e.currentTarget.setPointerCapture(e.pointerId);
+          void startRecording();
+        }}
+        onPointerUp={(e) => {
+          e.preventDefault();
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            e.currentTarget.releasePointerCapture(e.pointerId);
+          }
+          stopRecording();
+        }}
+        onPointerCancel={stopRecording}
         aria-label="Push to Talk"
       >
         <svg

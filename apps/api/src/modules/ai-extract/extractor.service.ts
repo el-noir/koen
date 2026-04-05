@@ -29,9 +29,31 @@ export class ExtractorService {
         response_format: { type: 'json_object' },
       });
 
-      const result = JSON.parse(completion.choices[0].message.content || '[]');
-      // The LLM might wrap the array in an object like { "data": [...] }
-      return Array.isArray(result) ? result : (result.data || []);
+      const rawContent = completion.choices[0].message.content || '{}';
+      const normalizedContent = rawContent
+        .replace(/^```json\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/\s*```$/, '');
+      const result = JSON.parse(normalizedContent);
+
+      if (Array.isArray(result)) {
+        return result;
+      }
+
+      if (Array.isArray(result.data)) {
+        return result.data;
+      }
+
+      if (Array.isArray(result.items)) {
+        return result.items;
+      }
+
+      if (Array.isArray(result.extracted)) {
+        return result.extracted;
+      }
+
+      this.logger.warn(`Groq extraction returned no array payload: ${normalizedContent}`);
+      return [];
     } catch (err) {
       this.logger.error('Groq extraction failed', err);
       return [];

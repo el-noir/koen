@@ -6,7 +6,7 @@ NestJS backend for the KOEN voice-first job site assistant.
 
 - Exposes project, record, and confirmation endpoints under `/api`
 - Accepts audio uploads from the web app
-- Transcribes recordings with OpenAI Whisper
+- Transcribes recordings with Groq Whisper
 - Extracts structured construction data with Groq
 - Stores projects, voice records, and extracted items in PostgreSQL via Prisma
 
@@ -14,7 +14,7 @@ NestJS backend for the KOEN voice-first job site assistant.
 
 - `src/modules/projects`: Project CRUD
 - `src/modules/records`: Audio upload and record listing
-- `src/modules/ai-extract`: Whisper and extraction pipeline
+- `src/modules/ai-extract`: transcription and extraction pipeline
 - `src/modules/confirm`: Confirm or edit extracted data
 - `src/database`: Prisma service and module
 - `prisma`: Prisma schema and seed script
@@ -35,7 +35,6 @@ Swagger docs are available at `http://localhost:4000/api/docs`.
 The API expects the root `.env` file to provide:
 
 - `DATABASE_URL`
-- `OPENAI_API_KEY`
 - `GROQ_API_KEY`
 - `FRONTEND_URL` (optional)
 

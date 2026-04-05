@@ -13,7 +13,8 @@ TRANSCRIPT:
 
 ### RULES:
 - **Site Context**: Interpret site slang (e.g., "mud" usually means concrete/mortar, "sparky" means electrician).
-- **JSON Only**: Output ONLY a valid JSON array of objects. No intro/outro text.
+- **JSON Only**: Output ONLY a valid JSON object. No intro/outro text.
+- **Response Shape**: Return the extracted items inside a top-level \`data\` array.
 - **Precision**: For 'hours', use 24h format for times (e.g., "08:00"). Use numbers for quantities and durations.
 - **Handling Ambiguity**: If a transcript mentions multiple distinct items, create separate objects.
 - **Confidence Layer**: Assign a 'confidence' score (0.0 to 1.0) based on how clear the intent is.
@@ -23,20 +24,23 @@ TRANSCRIPT:
 #### Example 1:
 Transcript: "Me and the boys did 8 hours today framing the second floor. Also we ran out of framing nails so we need more for tomorrow morning."
 Output:
-[
-  { "category": "hours", "content": { "start": "08:00", "end": "16:00", "workers": 3, "notes": "framing second floor" }, "confidence": 0.95 },
-  { "category": "task", "content": { "description": "framing second floor", "location": "second floor" }, "confidence": 1.0 },
-  { "category": "material", "content": { "description": "framing nails", "quantity": null, "unit": "boxes" }, "confidence": 0.9 }
-]
+{
+  "data": [
+    { "category": "hours", "content": { "start": "08:00", "end": "16:00", "workers": 3, "notes": "framing second floor" }, "confidence": 0.95 },
+    { "category": "task", "content": { "description": "framing second floor", "location": "second floor" }, "confidence": 1.0 },
+    { "category": "material", "content": { "description": "framing nails", "quantity": null, "unit": "boxes" }, "confidence": 0.9 }
+  ]
+}
 
 #### Example 2:
 Transcript: "Council inspector is coming tomorrow at 10 AM for the plumbing sign off."
 Output:
-[
-  { "category": "event", "content": { "description": "plumbing sign off / inspection", "date": "tomorrow", "time": "10:00" }, "confidence": 1.0 }
-]
+{
+  "data": [
+    { "category": "event", "content": { "description": "plumbing sign off / inspection", "date": "tomorrow", "time": "10:00" }, "confidence": 1.0 }
+  ]
+}
 
 ### OUTPUT:
-[JSON array only]
+{"data":[...]}
 `;
-

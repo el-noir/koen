@@ -1,7 +1,16 @@
 import { openDB } from 'idb';
+import { Language } from '@koen/types';
 
 const DB_NAME = 'koen_offline_db';
 const STORE_NAME = 'pending_records';
+
+export interface QueuedVoiceRecord {
+  id?: number;
+  projectId: string;
+  blob: Blob;
+  language: Language;
+  timestamp: string;
+}
 
 /**
  * offlineService — Simple IndexedDB queue for offline voice records.
@@ -16,18 +25,19 @@ export const offlineService = {
     });
   },
 
-  async queueRecord(projectId: string, blob: Blob) {
+  async queueRecord(projectId: string, blob: Blob, language: Language = 'en') {
     const db = await this.init();
     await db.add(STORE_NAME, {
       projectId,
       blob,
+      language,
       timestamp: new Date().toISOString(),
-    });
+    } satisfies QueuedVoiceRecord);
   },
 
   async getQueue() {
     const db = await this.init();
-    return db.getAll(STORE_NAME);
+    return db.getAll(STORE_NAME) as Promise<QueuedVoiceRecord[]>;
   },
 
   async clearItem(id: number) {

@@ -1,4 +1,4 @@
-# KOEN Voice Pipeline — Phase 1
+# KOEN Voice Pipeline - Phase 1
 
 The KOEN voice pipeline is a 4-step sequence designed for speed and accuracy in construction site conditions.
 
@@ -10,10 +10,10 @@ The KOEN voice pipeline is a 4-step sequence designed for speed and accuracy in 
 
 ## Step 2: Transcription (Whisper)
 - **Service**: `WhisperService.ts`
-- **Provider**: OpenAI Whisper-1
+- **Provider**: Groq Whisper (`whisper-large-v3-turbo`)
 - **API**: `POST /audio/transcriptions`
 - **Output**: JSON string (transcript)
-- **Logic**: The raw audio file is sent to Whisper. Transcription happens in the original language (en/es).
+- **Logic**: The raw audio file is sent to Groq Whisper. Transcription happens in the original language (en/es).
 
 ## Step 3: Intent Extraction (LLM)
 - **Service**: `ExtractorService.ts`
@@ -25,8 +25,8 @@ The KOEN voice pipeline is a 4-step sequence designed for speed and accuracy in 
 ## Step 4: Storage & Update (API)
 - **Service**: `AiExtractService.ts`
 - **Database**: PostgreSQL (Prisma)
-- **Logic**: 
+- **Logic**:
   1. Record is updated with transcript text.
   2. One entry is created in `ExtractedData` table for each entity.
-  3. Items with `confidence >= 0.95` are marked as `confirmed = true` automatically.
+  3. Items with `confidence >= threshold` are marked as `confirmed = true` automatically.
   4. Frontend polls or refreshes to display the new items.

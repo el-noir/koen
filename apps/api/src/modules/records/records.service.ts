@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateRecordDto } from './dto/create-record.dto';
 import { AiExtractService } from '../ai-extract/ai-extract.service';
+import { presentRecord } from './record-presenter';
 
 @Injectable()
 export class RecordsService {
@@ -21,7 +22,7 @@ export class RecordsService {
         projectId: dto.projectId,
         userId,
         audioUrl: file.path,      // Path on local disk (for Stage 1)
-        transcript: '',           // Filled by Whisper
+        transcript: '',           // Filled after transcription
         language: dto.language,
         confidenceScore: 0,
       },
@@ -33,14 +34,16 @@ export class RecordsService {
       this.logger.error(`AI Extraction failed for record ${record.id}`, err.stack);
     });
 
-    return record;
+    return presentRecord({ ...record, extracted: [] });
   }
 
   async findByProject(projectId: string, userId: string) {
-    return this.prisma.voiceRecord.findMany({
+    const records = await this.prisma.voiceRecord.findMany({
       where: { projectId, userId },
       include: { extracted: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    return records.map((record) => presentRecord(record));
   }
 }

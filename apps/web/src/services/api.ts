@@ -26,6 +26,18 @@ export const api = {
     return parseResponse<T>(response);
   },
 
+  async patch<T = unknown>(endpoint: string, body: unknown) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    return parseResponse<T>(response);
+  },
+
   async uploadAudio<T = unknown>(projectId: string, blob: Blob, language: string = 'en') {
     const formData = new FormData();
     formData.append('audio', blob, 'record.webm');
@@ -38,5 +50,9 @@ export const api = {
     });
 
     return parseResponse<T>(response);
+  },
+
+  async confirmExtractedItem<T = unknown>(itemId: string, payload: { confirmed?: boolean; content?: unknown }) {
+    return this.patch<T>(`/confirm/${itemId}`, payload);
   },
 };

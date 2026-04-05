@@ -9,7 +9,7 @@ Workers record short voice notes during the day. KOEN stores the audio, transcri
 - Frontend: Next.js, React, Tailwind CSS
 - Backend: NestJS
 - Database: PostgreSQL + Prisma
-- Transcription: OpenAI Whisper
+- Transcription: Groq Whisper
 - AI extraction: Groq
 - Deployment: Railway
 
@@ -39,7 +39,6 @@ koen/
 
 - Node.js 20+
 - PostgreSQL locally, or Docker
-- `OPENAI_API_KEY`
 - `GROQ_API_KEY`
 
 ### Install
@@ -57,7 +56,6 @@ cp .env.example .env
 Fill in:
 
 - `DATABASE_URL`
-- `OPENAI_API_KEY`
 - `GROQ_API_KEY`
 
 ### Start Database
@@ -87,6 +85,6 @@ API docs are available at `http://localhost:4000/api/docs`.
 
 1. The web app records audio from a push-to-talk button.
 2. Audio is uploaded to the API and stored as a `VoiceRecord`.
-3. The API transcribes the file with Whisper.
+3. The API transcribes the file with Groq Whisper.
 4. The transcript is sent to Groq for structured extraction.
 5. Extracted items are stored in PostgreSQL and can be confirmed later.

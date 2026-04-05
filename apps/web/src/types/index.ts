@@ -11,6 +11,8 @@ export type DataCategory = 'task' | 'material' | 'hours' | 'event' | 'note';
 
 export type Language = 'en' | 'es';
 
+export type VoiceRecordProcessingStatus = 'processing' | 'needs_confirmation' | 'processed';
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Core Entities
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,6 +44,7 @@ export interface VoiceRecord {
   language: Language;
   confidenceScore: number;
   createdAt: string;
+  processingStatus?: VoiceRecordProcessingStatus;
   extracted?: ExtractedData[];
 }
 

@@ -1,30 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import OpenAI from 'openai';
+import { Groq } from 'groq-sdk';
 import * as fs from 'fs';
 
 @Injectable()
 export class WhisperService {
-  private openai: OpenAI;
+  private groq: Groq;
 
   constructor(private configService: ConfigService) {
-    const apiKey = this.configService.get<string>('openai.apiKey');
-    if (apiKey && apiKey !== 'sk-...') {
-      this.openai = new OpenAI({ apiKey });
+    const apiKey = this.configService.get<string>('groq.apiKey');
+    if (apiKey && apiKey !== 'gsk_...') {
+      this.groq = new Groq({ apiKey });
     } else {
-      console.warn('⚠️ OpenAI API Key is missing or placeholder. Whisper transcription will be disabled.');
+      console.warn('⚠️ Groq API Key is missing or placeholder. Transcription will be disabled.');
     }
   }
 
   async transcribe(filePath: string): Promise<{ text: string; language: string }> {
-    const response = await this.openai.audio.transcriptions.create({
+    const response = await this.groq.audio.transcriptions.create({
       file: fs.createReadStream(filePath),
-      model: 'whisper-1',
+      model: 'whisper-large-v3-turbo',
+      response_format: 'verbose_json',
     });
+    const verboseResponse = response as typeof response & { language?: string };
 
     return {
       text: response.text,
-      language: 'en', // Whisper detects this, but let's assume 'en' for now
+      language: verboseResponse.language === 'es' ? 'es' : 'en',
     };
   }
 }

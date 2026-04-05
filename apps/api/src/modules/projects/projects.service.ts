@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { presentRecord } from '../records/record-presenter';
 
 @Injectable()
 export class ProjectsService {
@@ -35,7 +36,11 @@ export class ProjectsService {
       },
     });
     if (!project) throw new NotFoundException(`Project ${id} not found`);
-    return project;
+
+    return {
+      ...project,
+      records: project.records.map((record) => presentRecord(record)),
+    };
   }
 
   async update(id: string, dto: UpdateProjectDto, userId: string) {

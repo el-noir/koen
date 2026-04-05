@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../database/prisma.service';
 import { WhisperService } from './whisper.service';
 import { ExtractorService } from './extractor.service';
@@ -9,15 +10,18 @@ export class AiExtractService {
 
   constructor(
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
     private readonly whisperService: WhisperService,
     private readonly extractorService: ExtractorService,
   ) {}
 
   /**
-   * Main pipeline: Whisper → Groq → Database Store
+   * Main pipeline: Groq Whisper -> Groq extraction -> Database Store
    */
   async processRecord(recordId: string) {
     this.logger.log(`Starting AI extraction for record ${recordId}`);
+    const confidenceThreshold =
+      this.configService.get<number>('confidenceThreshold') ?? 0.8;
 
     const record = await this.prisma.voiceRecord.findUnique({
       where: { id: recordId },
@@ -25,7 +29,7 @@ export class AiExtractService {
     if (!record) return;
 
     try {
-      // 1. Transcribe audio using Whisper
+      // 1. Transcribe audio using Groq Whisper
       const { text, language } = await this.whisperService.transcribe(record.audioUrl);
       this.logger.log(`Transcription: ${text}`);
 
@@ -36,7 +40,14 @@ export class AiExtractService {
       // 3. Update the record with transcript
       await this.prisma.voiceRecord.update({
         where: { id: recordId },
-        data: { transcript: text, language },
+        data: {
+          transcript: text,
+          language,
+          confidenceScore:
+            entities.length > 0
+              ? Math.max(...entities.map((entity) => entity.confidence || 0))
+              : 0,
+        },
       });
 
       // 4. Store extracted data in the database
@@ -49,7 +60,7 @@ export class AiExtractService {
             category: entity.category, // e.g., 'task', 'material'
             content: entity.content,   // JSON object
             confidence: entity.confidence || 0,
-            confirmed: (entity.confidence || 0) >= 0.95, // Auto-confirm high confidence
+            confirmed: (entity.confidence || 0) >= confidenceThreshold,
           },
         }),
       );

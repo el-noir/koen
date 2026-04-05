@@ -4,12 +4,18 @@ import { useHaptics } from './useHaptics';
 export function useAudioRecorder(onFinish: (blob: Blob) => void) {
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
   const { vibrateStart, vibrateEnd } = useHaptics();
 
   const startRecording = useCallback(async () => {
+    if (mediaRecorder.current?.state === 'recording') {
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       mediaRecorder.current = new MediaRecorder(stream);
       chunks.current = [];
 
@@ -20,7 +26,9 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void) {
       mediaRecorder.current.onstop = () => {
         const audioBlob = new Blob(chunks.current, { type: 'audio/webm' });
         onFinish(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
+        streamRef.current?.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+        mediaRecorder.current = null;
       };
 
       mediaRecorder.current.start();
@@ -32,7 +40,7 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void) {
   }, [onFinish, vibrateStart]);
 
   const stopRecording = useCallback(() => {
-    if (mediaRecorder.current && isRecording) {
+    if (mediaRecorder.current?.state === 'recording' && isRecording) {
       mediaRecorder.current.stop();
       setIsRecording(false);
       vibrateEnd();
