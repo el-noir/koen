@@ -1,32 +1,75 @@
-# KOEN Data Model — Stage 1
+# KOEN Data Model
 
-The data model is designed to be simple for the MVP but extensible for the "Operating System for Construction" goal (Stage 4).
+The data model is intentionally small for the Stage 1 MVP, but it is already structured to support future multi-project and multi-user expansion.
 
-## Global Schema (Prisma)
-The source of truth is in `packages/database/schema.prisma`.
+## Prisma Schema
 
-### Users (`users`)
-Base entity for authentication. Stage 1 uses a placeholder `stage1-user`.
-- `name`, `email`, `language` (default: `en`)
+The source of truth is:
 
-### Projects (`projects`)
-The top-level container for all site work.
-- `name`, `client`, `startDate`, `stage` (foundations, framing, cladding, finishing)
+`apps/api/prisma/schema.prisma`
 
-### VoiceRecords (`voice_records`)
-Stores the raw audio input and its transcript.
-- `audioUrl`: Path to the file.
-- `transcript`: Natural language text from Whisper.
-- `confidenceScore`: Overall transcription quality (0-1).
+## Core Models
 
-### ExtractedData (`extracted_data`)
-The structured output derived from a `VoiceRecord`. One record can have multiple items (e.g. one voice note describing hours *and* a task).
-- `category`: task, material, hours, event, note
-- `content`: JSON blob (flexible structure per category)
-- `confidence`: Confidence of the LLM extraction (0-1)
-- `confirmed`: Toggled by the worker via UI or auto-confirmed if high confidence.
+### User
+
+Base identity for ownership of projects and records.
+
+Fields:
+
+- `name`
+- `email`
+- `language`
+
+### Project
+
+Top-level container for job-site work.
+
+Fields:
+
+- `name`
+- `client`
+- `startDate`
+- `stage`
+
+### VoiceRecord
+
+Stores the raw uploaded audio and its transcript.
+
+Fields:
+
+- `audioUrl`
+- `transcript`
+- `language`
+- `confidenceScore`
+
+### ExtractedData
+
+Stores structured output derived from a voice record.
+
+Fields:
+
+- `category`
+- `content`
+- `confidence`
+- `confirmed`
 
 ## Relationships
+
 - `User` 1:N `Project`
+- `User` 1:N `VoiceRecord`
 - `Project` 1:N `VoiceRecord`
 - `VoiceRecord` 1:N `ExtractedData`
+
+## Categories
+
+Current extraction categories:
+
+- `task`
+- `material`
+- `hours`
+- `event`
+- `note`
+
+## Repo Note
+
+The current repo does not use a separate shared database package or shared types package. Prisma lives inside `apps/api`, and app-level TypeScript types are maintained locally in each app.

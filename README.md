@@ -1,100 +1,92 @@
-# KOEN — Voice-first Job Site Assistant
+# KOEN
 
-> **Stage 1 MVP** · Voice-to-structured-data loop · April 2026  
-> Developer: Mudasir Shah · Client: Alonso Avalos
+Voice-first job site assistant for construction teams.
 
----
-
-## What is KOEN?
-
-KOEN acts as external memory for daily job site work. Workers record short voice notes during the day. The system converts those notes into structured data automatically — no typing, no forms, no friction.
-
-**The interaction must feel like a walkie-talkie**: press → speak → release → done.
-
----
+Workers record short voice notes during the day. KOEN stores the audio, transcribes it, extracts structured data, and shows the result back in a simple project workflow.
 
 ## Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | Next.js 15 (App Router, PWA) |
-| Backend | NestJS 11 |
-| Database | PostgreSQL + Prisma |
-| Transcription | OpenAI Whisper |
-| AI Extraction | Groq API (Stage 1) |
-| Deployment | Railway |
+- Frontend: Next.js, React, Tailwind CSS
+- Backend: NestJS
+- Database: PostgreSQL + Prisma
+- Transcription: OpenAI Whisper
+- AI extraction: Groq
+- Deployment: Railway
 
----
+## Repo Structure
 
-## Monorepo Structure
-
-```
+```text
 koen/
-├── apps/
-│   ├── api/        # NestJS backend
-│   └── web/        # Next.js PWA
-├── packages/
-│   ├── database/   # Prisma schema + client
-│   └── types/      # Shared TypeScript interfaces
-├── infrastructure/ # Docker, Railway config
-└── docs/           # Architecture, API reference
++-- apps/
+�   +-- api/            # NestJS backend and Prisma schema
+�   +-- web/            # Next.js frontend
++-- docs/               # Architecture and product notes
++-- infrastructure/     # Deployment and local infra config
++-- docker-compose.yml
++-- .env.example
++-- package.json
 ```
 
----
+## Important Repo Notes
+
+- The Prisma schema lives in `apps/api/prisma/schema.prisma`.
+- The repo does not currently use shared workspace packages for database or types.
+- TypeScript types are maintained locally inside each app.
 
 ## Setup
 
 ### Prerequisites
-- Node.js 20+
-- PostgreSQL running locally (or use Docker)
-- Groq API key (free at console.groq.com)
-- OpenAI API key (for Whisper)
 
-### 1. Clone & install
+- Node.js 20+
+- PostgreSQL locally, or Docker
+- `OPENAI_API_KEY`
+- `GROQ_API_KEY`
+
+### Install
+
 ```bash
-git clone https://github.com/your-username/koen.git
-cd koen
 npm install
 ```
 
-### 2. Configure environment
+### Configure Environment
+
 ```bash
 cp .env.example .env
-# Fill in DATABASE_URL, OPENAI_API_KEY, GROQ_API_KEY
 ```
 
-### 3. Run the database
+Fill in:
+
+- `DATABASE_URL`
+- `OPENAI_API_KEY`
+- `GROQ_API_KEY`
+
+### Start Database
+
 ```bash
-# With Docker (easiest):
-docker-compose -f infrastructure/docker-compose.yml up -d
-
-# Or point DATABASE_URL to your local PostgreSQL
+docker-compose up -d
 ```
 
-### 4. Run migrations
+Or point `DATABASE_URL` to an existing PostgreSQL instance.
+
+### Run Prisma Migration
+
 ```bash
 npm run db:migrate
 ```
 
-### 5. Start development servers
-```bash
-# API (http://localhost:4000)
-npm run dev:api
+### Start Apps
 
-# Web PWA (http://localhost:3000)
+```bash
+npm run dev:api
 npm run dev:web
 ```
 
-### API Docs (Swagger)
-Visit `http://localhost:4000/api/docs` when the API is running.
+API docs are available at `http://localhost:4000/api/docs`.
 
----
+## Current Product Flow
 
-## Stage Roadmap
-
-| Stage | Purpose | Status |
-|---|---|---|
-| Stage 1 | Voice capture MVP — one real user | 🔨 In progress |
-| Stage 2 | AI agent layer — photo uploads, building code lookups | ⏳ Planned |
-| Stage 3 | Multi-user — teams, RBAC, shared projects | ⏳ Planned |
-| Stage 4 | Business integrations — Xero, Procore, payroll | ⏳ Planned |
+1. The web app records audio from a push-to-talk button.
+2. Audio is uploaded to the API and stored as a `VoiceRecord`.
+3. The API transcribes the file with Whisper.
+4. The transcript is sent to Groq for structured extraction.
+5. Extracted items are stored in PostgreSQL and can be confirmed later.

@@ -1,10 +1,10 @@
 'use client';
 
-import React, { use, useEffect, useState } from 'react';
-import { Mic, Calendar, MessageSquare, Briefcase, Package, Clock, Star, Info, ChevronLeft } from 'lucide-react';
+import React, { use, useCallback, useEffect, useState } from 'react';
+import { Calendar, MessageSquare, Briefcase, Package, Clock, Star, Info, ChevronLeft, LoaderCircle } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../services/api';
-import { Project, VoiceRecord } from '@koen/types';
+import { ExtractedData, Project, VoiceRecord } from '@koen/types';
 import { PushToTalkButton } from '../../../components/PushToTalkButton/PushToTalkButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,36 +14,102 @@ import { Separator } from '@/components/ui/separator';
 
 type ProjectWithRecords = Project & { records?: VoiceRecord[] };
 
+const POLL_INTERVAL_MS = 2000;
+const MAX_POLL_ATTEMPTS = 10;
+
+const tabs = [
+  { id: 'task', label: 'Tasks', icon: Briefcase },
+  { id: 'material', label: 'Materials', icon: Package },
+  { id: 'hours', label: 'Hours', icon: Clock },
+  { id: 'event', label: 'Events', icon: Star },
+  { id: 'note', label: 'Notes', icon: Info },
+] as const;
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function hasFinishedProcessing(record?: VoiceRecord | null) {
+  if (!record) {
+    return false;
+  }
+
+  return record.transcript.trim().length > 0 || Boolean(record.extracted);
+}
+
+function formatExtractedContent(item: ExtractedData) {
+  if (item.category === 'hours') {
+    const content = item.content as {
+      start?: string;
+      end?: string;
+      workers?: number;
+      notes?: string;
+    };
+
+    const parts = [
+      content.start && content.end ? `${content.start} -> ${content.end}` : '',
+      typeof content.workers === 'number' ? `${content.workers} worker${content.workers === 1 ? '' : 's'}` : '',
+      content.notes || '',
+    ].filter(Boolean);
+
+    return parts.join(' | ') || 'Hours recorded';
+  }
+
+  const content = item.content as {
+    description?: string;
+    text?: string;
+  };
+
+  return content.description || content.text || 'Recorded update';
+}
+
 export default function ProjectDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const [project, setProject] = useState<Project | null>(null);
   const [records, setRecords] = useState<VoiceRecord[]>([]);
-  const [activeTab, setActiveTab] = useState('tasks');
-  const tabs = [
-    { id: 'tasks', label: 'Tasks', icon: Briefcase },
-    { id: 'materials', label: 'Materials', icon: Package },
-    { id: 'hours', label: 'Hours', icon: Clock },
-    { id: 'events', label: 'Events', icon: Star },
-    { id: 'notes', label: 'Notes', icon: Info },
-  ];
+  const [pendingRecordIds, setPendingRecordIds] = useState<string[]>([]);
+
+  const loadProject = useCallback(async () => {
+    try {
+      const nextProject = await api.fetch<ProjectWithRecords>(`/projects/${id}`);
+      setProject(nextProject);
+      setRecords(nextProject.records || []);
+      return nextProject;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }, [id]);
 
   useEffect(() => {
-    async function load() {
-      try {
-        const p = await api.fetch<ProjectWithRecords>(`/projects/${id}`);
-        setProject(p);
-        setRecords(p.records || []);
-      } catch (err) {
-        console.error(err);
+    void loadProject();
+  }, [loadProject]);
+
+  const pollForProcessedRecord = useCallback(
+    async (recordId: string) => {
+      for (let attempt = 0; attempt < MAX_POLL_ATTEMPTS; attempt += 1) {
+        await sleep(POLL_INTERVAL_MS);
+
+        const nextProject = await loadProject();
+        const nextRecord = nextProject?.records?.find((record) => record.id === recordId);
+
+        if (hasFinishedProcessing(nextRecord)) {
+          setPendingRecordIds((current) => current.filter((currentId) => currentId !== recordId));
+          return;
+        }
       }
-    }
-    load();
-  }, [id]);
+
+      setPendingRecordIds((current) => current.filter((currentId) => currentId !== recordId));
+    },
+    [loadProject],
+  );
 
   const handleVoiceFinish = async (blob: Blob) => {
     try {
       const record = await api.uploadAudio<VoiceRecord>(id, blob);
-      setRecords([record, ...records]);
+      setRecords((current) => [record, ...current]);
+      setPendingRecordIds((current) => [record.id, ...current.filter((currentId) => currentId !== record.id)]);
+      void pollForProcessedRecord(record.id);
     } catch (err) {
       console.error('Audio upload failed', err);
     }
@@ -85,7 +151,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       </header>
 
       {/* Content */}
-      <Tabs defaultValue="tasks" className="flex-1 flex flex-col overflow-hidden" onValueChange={setActiveTab}>
+      <Tabs defaultValue="task" className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 pt-4 shrink-0 bg-card/20">
           <TabsList className="bg-muted/50 p-1">
             {tabs.map((t) => (
@@ -97,6 +163,19 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         </div>
 
         <main className="flex-1 overflow-y-auto no-scrollbar p-6">
+          {pendingRecordIds.length > 0 && (
+            <Card className="mb-4 border-yellow-500/30 bg-yellow-500/5">
+              <CardContent className="flex items-center gap-3 p-4 text-sm text-muted-foreground">
+                <LoaderCircle className="h-4 w-4 animate-spin text-yellow-600" />
+                <span>
+                  {pendingRecordIds.length === 1
+                    ? 'Processing latest recording...'
+                    : `Processing ${pendingRecordIds.length} recordings...`}
+                </span>
+              </CardContent>
+            </Card>
+          )}
+
           {tabs.map((t) => (
             <TabsContent key={t.id} value={t.id} className="m-0 focus-visible:ring-0">
               <div className="grid gap-4 pb-32">
@@ -122,7 +201,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                               <div key={e.id} className="flex items-start gap-3">
                                 <div className="mt-1 h-1.5 w-1.5 rounded-full bg-yellow-500 shrink-0 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
                                 <div className="text-sm font-medium leading-relaxed italic text-foreground/90">
-                                  "{(e.content as any).description || (e.content as any).text}"
+                                  "{formatExtractedContent(e)}"
                                 </div>
                               </div>
                             ))}

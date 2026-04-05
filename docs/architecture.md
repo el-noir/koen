@@ -1,23 +1,48 @@
-# KOEN Architecture — Stage 1
+# KOEN Architecture
 
 ## Overview
-KOEN is built as a **TypeScript Monorepo** using **Next.js 15 (App Router)** and **NestJS 11**.
 
-## Tech Stack
-- **Frontend**: Next.js 15, Tailwind CSS, PWA (Service Workers, IndexedDB)
-- **Backend**: NestJS 11, Prisma ORM, Multer (Local Storage)
-- **AI/ML**: OpenAI Whisper (Audio), Groq/Llama-3 (Extraction)
-- **Infrastructure**: PostgreSQL, Railway, GitHub Actions
+KOEN is a TypeScript monorepo with:
 
-## Data Flow (Stage 1)
-1. **Capture**: Audio recorded in `useAudioRecorder` hook.
-2. **Persistence**: Blob saved to `IndexedDB` if offline, or sent to `POST /api/records/upload`.
-3. **Transcription**: API calls `WhisperService` with local `uploads/` file.
-4. **Extraction**: `ExtractorService` sends prompt to `Groq API`.
-5. **Storage**: `ExtractedData` rows created in PostgreSQL.
-6. **Sync**: Frontend polls or receives updated `VoiceRecord` list with extracted items.
+- `apps/api`: NestJS backend
+- `apps/web`: Next.js frontend
 
-## Key Design Principles
-- **Walkie-Talkie UI**: Simple large PTT button. No complex navigation.
-- **Offline First**: All voice captures are queued locally in `offline.ts`.
-- **Stateless API**: Each record is an independent unit of extraction.
+The system is designed around a voice-to-structured-data workflow for construction site reporting.
+
+## Backend Responsibilities
+
+- Store projects and records
+- Accept audio uploads
+- Run transcription with Whisper
+- Run structured extraction with Groq
+- Save extracted items for later confirmation
+
+## Frontend Responsibilities
+
+- Show project list and project detail screens
+- Capture audio with a push-to-talk interface
+- Upload audio to the backend
+- Keep an IndexedDB queue for offline-first behavior
+
+## Stage 1 Data Flow
+
+1. Audio is captured in the web app.
+2. The frontend uploads the recording to `POST /api/records/upload`.
+3. The backend creates a `VoiceRecord`.
+4. The backend processes that record asynchronously.
+5. Whisper generates the transcript.
+6. Groq extracts structured entities from the transcript.
+7. Extracted items are stored as `ExtractedData`.
+
+## Design Principles
+
+- Walkie-talkie interaction over form-heavy data entry
+- Simple project-centric workflow
+- Offline-friendly recording
+- Raw audio preserved so extraction can improve later
+
+## Repo Notes
+
+- Prisma schema lives in `apps/api/prisma/schema.prisma`.
+- TypeScript types are local to each app.
+- The repo does not currently use shared workspace packages such as `packages/types` or `packages/database`.
