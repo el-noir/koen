@@ -5,54 +5,116 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1.5rem 1rem 1rem;
   width: 100%;
 }
 
 .button {
-  width: 120px;
-  height: 120px;
+  width: 132px;
+  height: 132px;
   border-radius: 50%;
   border: none;
-  background: #FFD700;
-  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 245, 179, 0.95), rgba(255, 215, 0, 0.95) 55%, rgba(255, 181, 0, 0.95));
+  box-shadow:
+    0 8px 30px rgba(255, 200, 0, 0.35),
+    inset 0 -12px 24px rgba(0, 0, 0, 0.08),
+    inset 0 10px 18px rgba(255, 255, 255, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition:
+    transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
   user-select: none;
   touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
+.button:disabled {
+  cursor: wait;
+  filter: saturate(0.85);
+}
+
 .button:active, .recording {
   transform: scale(0.9);
-  background: #FFC000;
-  box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+  box-shadow:
+    0 0 36px rgba(255, 196, 0, 0.55),
+    inset 0 -12px 24px rgba(0, 0, 0, 0.08),
+    inset 0 8px 16px rgba(255, 255, 255, 0.2);
 }
 
 .icon {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   color: #111;
 }
 
-.status {
-  margin-top: 1.5rem;
-  font-weight: 600;
-  color: #888;
+.statusCard {
+  margin-top: 1rem;
+  width: min(100%, 320px);
+  border: 1px solid rgba(255, 214, 10, 0.18);
+  border-radius: 1.25rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  padding: 0.9rem 1rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.recordingCard {
+  border-color: rgba(239, 68, 68, 0.22);
+  box-shadow: 0 14px 34px rgba(239, 68, 68, 0.12);
+}
+
+.statusTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+}
+
+.statusSubtitle {
+  margin-top: 0.35rem;
+  color: #667085;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.inlineIcon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+.spinning {
+  animation: spin 0.9s linear infinite;
+}
+
+.errorText {
+  margin-top: 0.5rem;
+  color: #dc2626;
+  font-size: 0.76rem;
+  line-height: 1.4;
 }
 
 .recordingStatus {
-  color: #FF4444;
+  color: #dc2626;
   animation: pulse 1s infinite alternate;
 }
 
 @keyframes pulse {
   from { opacity: 0.6; }
   to { opacity: 1; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }

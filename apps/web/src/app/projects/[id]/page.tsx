@@ -1,7 +1,7 @@
 'use client';
 
 import React, { use, useCallback, useEffect, useRef, useState } from 'react';
-import { Calendar, MessageSquare, Briefcase, Package, Clock, Star, Info, ChevronLeft, LoaderCircle, Check, Pencil, Save, CloudOff, Wifi } from 'lucide-react';
+import { Calendar, MessageSquare, Briefcase, Package, Clock, Star, Info, ChevronLeft, LoaderCircle, Check, Pencil, Save, CloudOff, Wifi, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../services/api';
 import { ExtractedData, Language, Project, VoiceRecord } from '@/types';
@@ -19,6 +19,12 @@ type PendingConfirmation = { recordId: string; transcript: string; item: Extract
 type StatusNotice = {
   tone: 'info' | 'success' | 'warning' | 'error';
   message: string;
+};
+type CaptureFlow = {
+  phase: 'uploading' | 'queued_offline' | 'processing' | 'processed' | 'error';
+  startedAt: string;
+  recordId?: string;
+  errorMessage?: string;
 };
 type EditableDraft = {
   description: string;
@@ -142,6 +148,61 @@ function getProcessingBadgeClass(record: VoiceRecord) {
   }
 }
 
+function formatLatestCaptureTitle(capture: CaptureFlow, record?: VoiceRecord | null) {
+  switch (capture.phase) {
+    case 'uploading':
+      return 'Sending note to KOEN';
+    case 'queued_offline':
+      return 'Note saved offline';
+    case 'processing':
+      return 'Turning note into site updates';
+    case 'processed':
+      return record?.processingStatus === 'needs_confirmation'
+        ? 'Latest note needs a quick review'
+        : 'Latest note is ready';
+    case 'error':
+    default:
+      return 'Latest note could not be sent';
+  }
+}
+
+function formatLatestCaptureDetail(capture: CaptureFlow, record?: VoiceRecord | null) {
+  switch (capture.phase) {
+    case 'uploading':
+      return 'Uploading the recording now. Keep working while KOEN takes it from here.';
+    case 'queued_offline':
+      return 'The note is safe on this device and will sync automatically when the connection returns.';
+    case 'processing':
+      return record?.transcript?.trim()
+        ? 'KOEN heard the note. Structured data will appear as soon as extraction finishes.'
+        : 'KOEN is transcribing the note first, then it will extract the site updates.';
+    case 'processed':
+      if (record?.processingStatus === 'needs_confirmation') {
+        return 'KOEN extracted the note, but some items need a quick confirm before you move on.';
+      }
+
+      return 'Transcript and extracted data are ready below.';
+    case 'error':
+    default:
+      return capture.errorMessage || 'The note could not be uploaded right now. Try again in a moment.';
+  }
+}
+
+function getLatestCaptureCardClass(capture: CaptureFlow) {
+  switch (capture.phase) {
+    case 'processed':
+      return 'border-emerald-500/30 bg-emerald-500/5';
+    case 'queued_offline':
+      return 'border-yellow-500/30 bg-yellow-500/5';
+    case 'error':
+      return 'border-red-500/30 bg-red-500/5';
+    case 'uploading':
+    case 'processing':
+    default:
+      return 'border-blue-500/30 bg-blue-500/5';
+  }
+}
+
 function getEditableDraft(item: ExtractedData): EditableDraft {
   const content = item.content as unknown as Record<string, unknown>;
 
@@ -230,6 +291,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   const [isOffline, setIsOffline] = useState(false);
   const [isSyncingQueue, setIsSyncingQueue] = useState(false);
   const [statusNotice, setStatusNotice] = useState<StatusNotice | null>(null);
+  const [latestCapture, setLatestCapture] = useState<CaptureFlow | null>(null);
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<Record<string, EditableDraft>>({});
   const [savingItemIds, setSavingItemIds] = useState<string[]>([]);
@@ -275,11 +337,28 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
 
         if (hasFinishedProcessing(nextRecord)) {
           setPendingRecordIds((current) => current.filter((currentId) => currentId !== recordId));
+          setLatestCapture((current) => (
+            current?.recordId === recordId
+              ? {
+                  phase: 'processed',
+                  startedAt: current.startedAt,
+                  recordId,
+                }
+              : current
+          ));
           return;
         }
       }
 
       setPendingRecordIds((current) => current.filter((currentId) => currentId !== recordId));
+      setLatestCapture((current) => (
+        current?.recordId === recordId
+          ? {
+              ...current,
+              phase: 'processing',
+            }
+          : current
+      ));
       setStatusNotice({
         tone: 'info',
         message: 'The latest recording is still processing in the background. It should appear shortly.',
@@ -406,13 +485,29 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   }, [isOffline, syncQueuedRecords]);
 
   const handleVoiceFinish = async (blob: Blob) => {
+    const startedAt = new Date().toISOString();
+
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setLatestCapture({
+        phase: 'queued_offline',
+        startedAt,
+      });
       await queueRecordLocally(id, blob);
       return;
     }
 
     try {
-      await uploadRecord(id, blob);
+      setLatestCapture({
+        phase: 'uploading',
+        startedAt,
+      });
+
+      const record = await uploadRecord(id, blob);
+      setLatestCapture({
+        phase: 'processing',
+        startedAt,
+        recordId: record.id,
+      });
       setStatusNotice({
         tone: 'info',
         message: 'Recording sent. KOEN is turning it into site notes now.',
@@ -421,10 +516,19 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       console.error('Audio upload failed', err);
 
       if (isNetworkUploadError(err)) {
+        setLatestCapture({
+          phase: 'queued_offline',
+          startedAt,
+        });
         await queueRecordLocally(id, blob);
         return;
       }
 
+      setLatestCapture({
+        phase: 'error',
+        startedAt,
+        errorMessage: err instanceof Error ? err.message : 'Recording could not be uploaded right now.',
+      });
       setStatusNotice({
         tone: 'error',
         message: 'Recording could not be uploaded right now. Please try again.',
@@ -442,6 +546,9 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       })),
   );
   const recentRecords = records;
+  const latestCaptureRecord = latestCapture?.recordId
+    ? records.find((record) => record.id === latestCapture.recordId) ?? null
+    : null;
 
   const updateDraftValue = useCallback((itemId: string, field: keyof EditableDraft, value: string) => {
     setDrafts((current) => ({
@@ -484,13 +591,13 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
   );
 
   if (!project) return (
-    <div className="h-screen bg-background flex items-center justify-center font-mono text-muted-foreground animate-pulse">
+    <div className="min-h-dvh bg-background flex items-center justify-center font-mono text-muted-foreground animate-pulse">
       LOADING_PROJECT...
     </div>
   );
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex min-h-dvh flex-col bg-background text-foreground overflow-hidden">
       <header className="p-6 pb-4 border-b border-border/40 shrink-0 bg-card/30 backdrop-blur-md">
         <Link href="/projects">
           <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
@@ -529,6 +636,86 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         </div>
 
         <main className="flex-1 overflow-y-auto no-scrollbar p-6">
+          {latestCapture && (
+            <Card className={`mb-4 overflow-hidden ${getLatestCaptureCardClass(latestCapture)}`}>
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">
+                    {latestCapture.phase === 'queued_offline' ? (
+                      <CloudOff className="h-5 w-5 text-yellow-600" />
+                    ) : latestCapture.phase === 'processed' ? (
+                      <Check className="h-5 w-5 text-emerald-600" />
+                    ) : latestCapture.phase === 'error' ? (
+                      <AlertCircle className="h-5 w-5 text-red-600" />
+                    ) : (
+                      <LoaderCircle className="h-5 w-5 animate-spin text-blue-600" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1 space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="text-[10px] uppercase tracking-[0.22em]">
+                          Latest note
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(latestCapture.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <h2 className="text-base font-semibold text-foreground">
+                        {formatLatestCaptureTitle(latestCapture, latestCaptureRecord)}
+                      </h2>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {formatLatestCaptureDetail(latestCapture, latestCaptureRecord)}
+                      </p>
+                    </div>
+
+                    {latestCaptureRecord?.transcript?.trim() && (
+                      <div className="rounded-2xl border border-border/40 bg-background/55 p-3">
+                        <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                          Heard
+                        </div>
+                        <p className="text-sm leading-relaxed text-foreground/90">
+                          {latestCaptureRecord.transcript}
+                        </p>
+                      </div>
+                    )}
+
+                    {latestCapture.phase === 'processed' && latestCaptureRecord?.extracted && latestCaptureRecord.extracted.length > 0 && (
+                      <div className="rounded-2xl border border-border/40 bg-background/55 p-3">
+                        <div className="mb-2 flex items-center justify-between gap-3">
+                          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                            Structured result
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {latestCaptureRecord.extracted.length} item{latestCaptureRecord.extracted.length === 1 ? '' : 's'}
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {latestCaptureRecord.extracted.slice(0, 3).map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start gap-3 rounded-xl border border-border/30 bg-card/40 px-3 py-2"
+                            >
+                              <Badge
+                                variant="outline"
+                                className="min-w-20 justify-center border-yellow-500/40 bg-yellow-500/5 text-[10px] uppercase text-yellow-600"
+                              >
+                                {formatCategoryLabel(item.category)}
+                              </Badge>
+                              <div className="flex-1 text-sm leading-relaxed text-foreground/90">
+                                {formatExtractedContent(item)}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {statusNotice && (
             <Card
               className={`mb-4 ${
@@ -577,14 +764,12 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
             </Card>
           )}
 
-          {pendingRecordIds.length > 0 && (
+          {pendingRecordIds.length > 1 && (
             <Card className="mb-4 border-yellow-500/30 bg-yellow-500/5">
               <CardContent className="flex items-center gap-3 p-4 text-sm text-muted-foreground">
                 <LoaderCircle className="h-4 w-4 animate-spin text-yellow-600" />
                 <span>
-                  {pendingRecordIds.length === 1
-                    ? 'Processing latest note...'
-                    : `Processing ${pendingRecordIds.length} notes...`}
+                  {`Processing ${pendingRecordIds.length} notes...`}
                 </span>
               </CardContent>
             </Card>
@@ -894,7 +1079,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         </main>
       </Tabs>
 
-      <section className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none">
+      <section className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background/95 to-transparent px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-6 pointer-events-none sm:px-8">
         <div className="max-w-md mx-auto pointer-events-auto">
           <PushToTalkButton onFinish={handleVoiceFinish} />
         </div>
