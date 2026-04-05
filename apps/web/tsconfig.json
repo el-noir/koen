@@ -19,8 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"],
-      "@koen/types": ["./src/types/index.ts"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [

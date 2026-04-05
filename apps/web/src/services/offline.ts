@@ -1,5 +1,5 @@
 import { openDB } from 'idb';
-import { Language } from '@koen/types';
+import { Language } from '@/types';
 
 const DB_NAME = 'koen_offline_db';
 const STORE_NAME = 'pending_records';
@@ -12,10 +12,6 @@ export interface QueuedVoiceRecord {
   timestamp: string;
 }
 
-/**
- * offlineService — Simple IndexedDB queue for offline voice records.
- * Stage 1 requirement for resilient job-site recording.
- */
 export const offlineService = {
   async init() {
     return openDB(DB_NAME, 1, {
@@ -43,5 +39,5 @@ export const offlineService = {
   async clearItem(id: number) {
     const db = await this.init();
     await db.delete(STORE_NAME, id);
-  }
+  },
 };

@@ -4,7 +4,7 @@ import React, { use, useCallback, useEffect, useRef, useState } from 'react';
 import { Calendar, MessageSquare, Briefcase, Package, Clock, Star, Info, ChevronLeft, LoaderCircle, Check, Pencil, Save, CloudOff, Wifi } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '../../../services/api';
-import { ExtractedData, Language, Project, VoiceRecord } from '@koen/types';
+import { ExtractedData, Language, Project, VoiceRecord } from '@/types';
 import { PushToTalkButton } from '../../../components/PushToTalkButton/PushToTalkButton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,20 @@ type EditableDraft = {
   end: string;
   workers: string;
   notes: string;
+};
+
+const EMPTY_DRAFT: EditableDraft = {
+  description: '',
+  text: '',
+  location: '',
+  quantity: '',
+  unit: '',
+  supplier: '',
+  date: '',
+  start: '',
+  end: '',
+  workers: '',
+  notes: '',
 };
 
 const POLL_INTERVAL_MS = 2000;
@@ -268,7 +282,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       setPendingRecordIds((current) => current.filter((currentId) => currentId !== recordId));
       setStatusNotice({
         tone: 'info',
-        message: 'Latest recording is still processing in the background. It should appear shortly.',
+        message: 'The latest recording is still processing in the background. It should appear shortly.',
       });
     },
     [loadProject],
@@ -341,7 +355,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
             syncedForCurrentProject += 1;
           }
         } catch (err) {
-          console.error('Failed to sync offline recording', err);
+          console.error('Failed to sync offline note', err);
           break;
         }
       }
@@ -352,8 +366,8 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         setStatusNotice({
           tone: 'success',
           message: syncedForCurrentProject > 0
-            ? `Synced ${syncedForCurrentProject} saved recording${syncedForCurrentProject === 1 ? '' : 's'} for this project.`
-            : `Synced ${syncedCount} offline recording${syncedCount === 1 ? '' : 's'}.`,
+            ? `Synced ${syncedForCurrentProject} saved note${syncedForCurrentProject === 1 ? '' : 's'} for this site.`
+            : `Synced ${syncedCount} offline note${syncedCount === 1 ? '' : 's'}.`,
         });
       }
     } finally {
@@ -372,7 +386,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       setIsOffline(true);
       setStatusNotice({
         tone: 'warning',
-        message: 'Connection lost. New recordings will be saved offline.',
+        message: 'Connection lost. New notes will be saved offline.',
       });
     };
 
@@ -401,7 +415,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
       await uploadRecord(id, blob);
       setStatusNotice({
         tone: 'info',
-        message: 'Recording sent. Structured result will appear in the right tab shortly.',
+        message: 'Recording sent. KOEN is turning it into site notes now.',
       });
     } catch (err) {
       console.error('Audio upload failed', err);
@@ -433,19 +447,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
     setDrafts((current) => ({
       ...current,
       [itemId]: {
-        ...(current[itemId] || {
-          description: '',
-          text: '',
-          location: '',
-          quantity: '',
-          unit: '',
-          supplier: '',
-          date: '',
-          start: '',
-          end: '',
-          workers: '',
-          notes: '',
-        }),
+        ...(current[itemId] || EMPTY_DRAFT),
         [field]: value,
       },
     }));
@@ -489,11 +491,10 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
 
   return (
     <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden">
-      {/* Header */}
       <header className="p-6 pb-4 border-b border-border/40 shrink-0 bg-card/30 backdrop-blur-md">
         <Link href="/projects">
           <Button variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground hover:text-foreground">
-            <ChevronLeft className="mr-2 h-4 w-4" /> Back to Projects
+            <ChevronLeft className="mr-2 h-4 w-4" /> Back to Sites
           </Button>
         </Link>
         <div className="flex justify-between items-start">
@@ -516,7 +517,6 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         </div>
       </header>
 
-      {/* Content */}
       <Tabs defaultValue="task" className="flex-1 flex flex-col overflow-hidden">
         <div className="px-6 pt-4 shrink-0 bg-card/20">
           <TabsList className="bg-muted/50 p-1">
@@ -568,10 +568,10 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                 )}
                 <span>
                   {isOffline
-                    ? 'Offline mode active. New recordings will be saved locally.'
+                    ? 'Offline mode active. New notes will be saved locally.'
                     : isSyncingQueue
-                      ? 'Syncing saved recordings...'
-                      : `${queuedCount} saved recording${queuedCount === 1 ? '' : 's'} waiting to sync.`}
+                      ? 'Syncing saved notes...'
+                      : `${queuedCount} saved note${queuedCount === 1 ? '' : 's'} waiting to sync.`}
                 </span>
               </CardContent>
             </Card>
@@ -583,8 +583,8 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                 <LoaderCircle className="h-4 w-4 animate-spin text-yellow-600" />
                 <span>
                   {pendingRecordIds.length === 1
-                    ? 'Processing latest recording...'
-                    : `Processing ${pendingRecordIds.length} recordings...`}
+                    ? 'Processing latest note...'
+                    : `Processing ${pendingRecordIds.length} notes...`}
                 </span>
               </CardContent>
             </Card>
@@ -610,7 +610,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                           </div>
                           {transcript && (
                             <p className="text-xs leading-relaxed text-muted-foreground">
-                              From transcript: "{transcript}"
+                              Heard in recording: "{transcript}"
                             </p>
                           )}
                         </div>
@@ -760,7 +760,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
             <div className="mb-6 space-y-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-                  Recent Recordings
+                  Recent Notes
                 </h2>
                 <span className="text-xs text-muted-foreground">
                   {records.length} total
@@ -773,7 +773,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <div className="flex items-center text-[10px] text-muted-foreground font-mono uppercase">
                         <MessageSquare className="mr-2 h-3 w-3" />
-                        Voice Record
+                        Voice Note
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge
@@ -826,7 +826,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                         ) : (
                           <p className="text-sm text-muted-foreground">
                             {record.processingStatus === 'processing'
-                              ? 'AI is still processing this recording.'
+                              ? 'KOEN is still processing this note.'
                               : 'No extracted items were produced yet.'}
                           </p>
                         )}
@@ -855,7 +855,7 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
                         <div className="flex justify-between items-center mb-3">
                           <div className="flex items-center text-[10px] text-muted-foreground font-mono uppercase">
                             <MessageSquare className="mr-2 h-3 w-3" />
-                            TRANSCRIPT_LOG
+                            SITE NOTE
                           </div>
                           <Badge variant="secondary" className="text-[9px] font-mono opacity-70">
                             {new Date(r.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -894,7 +894,6 @@ export default function ProjectDetail({ params }: { params: Promise<{ id: string
         </main>
       </Tabs>
 
-      {/* Fixed Voice Interface */}
       <section className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none">
         <div className="max-w-md mx-auto pointer-events-auto">
           <PushToTalkButton onFinish={handleVoiceFinish} />

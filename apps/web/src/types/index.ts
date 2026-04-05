@@ -1,10 +1,3 @@
-// @koen/types — Shared TypeScript interfaces
-// Imported by both apps/api and apps/web for end-to-end type safety.
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────────────────────────────────────
-
 export type ProjectStage = 'foundations' | 'framing' | 'cladding' | 'finishing';
 
 export type DataCategory = 'task' | 'material' | 'hours' | 'event' | 'note';
@@ -12,10 +5,6 @@ export type DataCategory = 'task' | 'material' | 'hours' | 'event' | 'note';
 export type Language = 'en' | 'es';
 
 export type VoiceRecordProcessingStatus = 'processing' | 'needs_confirmation' | 'processed';
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Core Entities
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface User {
   id: string;
@@ -60,10 +49,6 @@ export interface ExtractedData {
   createdAt: string;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Extraction Content Shapes (per category)
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface TaskContent {
   description: string;
   location?: string;
@@ -77,15 +62,15 @@ export interface MaterialContent {
 }
 
 export interface HoursContent {
-  start: string;   // "08:00"
-  end: string;     // "17:00"
+  start: string;
+  end: string;
   workers?: number;
   notes?: string;
 }
 
 export interface EventContent {
   description: string;
-  date?: string;   // "tomorrow", "2026-04-15", etc.
+  date?: string;
 }
 
 export interface NoteContent {
@@ -99,10 +84,6 @@ export type ExtractedContent =
   | EventContent
   | NoteContent;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// API Request / Response shapes
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface CreateProjectDto {
   name: string;
   client: string;
@@ -115,7 +96,7 @@ export interface ExtractionResult {
   transcript: string;
   language: Language;
   extracted: ExtractedData[];
-  needsConfirmation: boolean; // true if any item has confidence < threshold
+  needsConfirmation: boolean;
 }
 
 export interface ApiResponse<T> {

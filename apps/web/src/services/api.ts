@@ -1,7 +1,9 @@
-// apps/web/src/services/api.ts
-// Typed API client for the Next.js frontend
+function getApiBase() {
+  const configuredBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+  return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/$/, '')}/api`;
+}
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+const API_BASE = getApiBase();
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await response.json();
