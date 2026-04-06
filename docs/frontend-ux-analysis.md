@@ -10,6 +10,26 @@ The biggest opportunity is no longer missing functionality. It is trust, clarity
 
 Right now the interface can capture a note, upload it, process it, and display transcript plus extracted data. That is a strong foundation. The next improvement pass should focus on making the app feel obvious, reliable, and calm to use on a real phone in a real job-site context.
 
+## Progress Since First Analysis
+
+The first highest-impact UX package has started.
+
+What is already improved:
+
+- The recorder now exposes clearer internal states instead of only `Hold to Talk` versus `Recording...`.
+- The push-to-talk area now gives better in-context feedback for permission request, active recording, and microphone problems.
+- The project detail page now introduces a `Latest note` flow so the newest capture has a more obvious journey from upload to processed result.
+- The project shell now behaves better on mobile with `dvh`-based layout and safer bottom spacing for the recorder dock.
+
+What is still incomplete in that same UX goal:
+
+- There is still no cancel gesture or lock-to-record option.
+- Error and retry behavior is still inconsistent across the project list, project detail, upload, and confirmation flows.
+- The latest note is clearer, but the screen still contains too many competing sections at once.
+- Offline confidence is still count-based rather than item-based.
+
+So the trust pass has started, but it has not fully matured into a truly calm end-to-end field workflow yet.
+
 ## Current UX Strengths
 
 - The fixed bottom push-to-talk interaction is the right primary control.
@@ -39,12 +59,10 @@ The recorder works, but it still lacks visible states that help a user trust wha
 
 Current gaps:
 
-- Recording errors are only logged to the console.
-- There is no visible permission-denied state.
-- There is no recording timer.
-- There is no explicit uploading state tied to the note.
-- There is no cancel gesture or lock-to-record option.
-- The button only switches between `Hold to Talk` and `Recording...`.
+- There is still no cancel gesture or lock-to-record option.
+- There is still no explicit post-release action surface such as `slide away to cancel`.
+- The recording state is clearer now, but the transition between `release`, `uploading`, `processing`, and `done` still lives partly in separate UI regions.
+- The recorder still depends on the user understanding the surrounding screen instead of feeling fully self-explanatory on its own.
 
 Why this matters:
 
@@ -52,7 +70,7 @@ A worker should never have to guess whether KOEN heard the note.
 
 Recommended improvements:
 
-- Add explicit recorder states:
+- Keep and refine the explicit recorder states:
   - `idle`
   - `requesting_permission`
   - `recording`
@@ -60,8 +78,8 @@ Recommended improvements:
   - `queued_offline`
   - `processing`
   - `error`
-- Show microphone permission errors inline.
-- Add a visible recording timer.
+- Keep microphone permission errors inline and make them dismiss/retry friendly.
+- Keep the visible recording timer and make it easier to notice at a glance.
 - Show immediate transitions after release:
   - `Uploading note...`
   - `Saved offline`
@@ -93,12 +111,13 @@ After recording, the worker's mental model is usually just:
 
 Recommended improvements:
 
-- Make `Latest Note` the primary result block after each recording.
+- Keep `Latest Note` as the primary result block after each recording.
 - Collapse older notes by default.
 - Move grouped category tabs below the note timeline.
 - Reduce the number of simultaneous banners competing for attention.
 - Inline confirmation actions into the latest note result when possible.
 - Keep the screen hierarchy focused on the most recent outcome first.
+- Consider turning older notes into a secondary archive list rather than a full always-open stream.
 
 Suggested hierarchy:
 
@@ -132,6 +151,7 @@ Recommended improvements:
   - queue sync failure
   - confirmation save failure
 - Surface backend messages inline when useful.
+- Show a visible failed state instead of silently leaving the user in an ambiguous loading view.
 - Add stronger timeout/failure messaging such as:
   - `Still processing`
   - `Could not process this note`
@@ -145,16 +165,13 @@ The product is conceptually mobile-first, but some implementation details still 
 
 Observed issues:
 
-- Full-screen layout relies on `h-screen` rather than `dvh`-friendly behavior.
-- The bottom recorder dock does not explicitly account for device safe areas.
 - Tabs may become cramped on narrow screens.
 - Some metadata text is very small for field use.
 - Confirm/edit actions can still be a bit tight for one-handed usage.
 
 Recommended improvements:
 
-- Use `min-h-dvh` instead of `h-screen` for the main app shell.
-- Add bottom safe-area padding using `env(safe-area-inset-bottom)`.
+- Keep `dvh`-based layout and safe-area padding in place.
 - Make tabs horizontally scrollable on small screens.
 - Increase tiny metadata text slightly where readability matters.
 - Increase tap-target size for key actions.
@@ -225,32 +242,33 @@ This does not require a full redesign. It requires a more decisive visual hierar
 
 ## Highest-Impact Improvement Order
 
-### 1. Recorder Trust Pass
+### 1. Project Detail Simplification And Priority Cleanup
 
 Implement:
 
-- explicit recorder states
-- permission and upload error UI
-- recording timer
-- stronger uploading/processing transitions
-- cancel gesture
+- collapse older notes by default
+- reduce competing banners
+- make the latest note the clear primary result area
+- move category views lower
+- make confirmation actions feel attached to the note they came from
 
-### 2. Project Detail Simplification
-
-Implement:
-
-- latest-note hero block
-- collapsed older notes
-- lower-priority grouped tabs
-- fewer competing status banners
-
-### 3. Honest Loading And Failure States
+### 2. Honest Loading And Failure States
 
 Implement:
 
 - loading vs empty vs error separation
 - retry actions
-- clearer processing timeout states
+- clearer project load failures
+- confirmation and sync failure feedback
+- stronger processing timeout states
+
+### 3. Recorder Completion Pass
+
+Implement:
+
+- cancel gesture
+- lock-to-record option if longer notes are expected
+- tighter handoff between recorder state and latest-note state
 
 ### 4. Mobile Ergonomics Pass
 
@@ -267,6 +285,27 @@ Implement:
 
 - name-first creation flow
 - optional metadata afterwards
+
+## What We Should Proceed With Now
+
+The next best UX task is:
+
+**Project Detail Simplification And Priority Cleanup**
+
+Why this should be next:
+
+- The recorder trust pass has already begun and now needs a cleaner destination.
+- The main page still makes the user scan too many blocks after recording.
+- Reducing screen competition will make every improvement that already exists feel stronger.
+- This is the highest-leverage follow-up because it improves clarity without needing backend changes.
+
+The concrete scope should be:
+
+1. Collapse older notes by default
+2. Keep one strong `Latest note` result card at the top
+3. Reduce duplicate banners when the latest note card already explains the state
+4. Push grouped category tabs and older history lower in the hierarchy
+5. Attach confirmation actions more tightly to the latest note when possible
 
 ## Strongest Recommendation
 
@@ -288,9 +327,10 @@ If KOEN gets that experience right, the whole product will feel dramatically mor
 
 A practical next package would include:
 
-1. Recorder state model and inline recorder feedback
-2. Latest note hero card with progressive processing states
-3. Error and retry states for list/detail/upload/confirm
-4. Mobile-safe layout refinements
+1. Collapse older notes and introduce a cleaner recent-history pattern
+2. Reduce duplicate status surfaces and let `Latest note` carry the main state
+3. Add explicit retry states for project load, upload, confirm, and sync
+4. Make tabs horizontally scrollable and reduce small-type density
+5. Add recorder cancel behavior as the next trust-pass increment
 
 That package would produce the biggest visible UX improvement without changing the product's core architecture.
