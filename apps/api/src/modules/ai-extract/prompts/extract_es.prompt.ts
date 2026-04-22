@@ -1,6 +1,9 @@
 export const EXTRACT_PROMPT_ES = `
 Eres un asistente experto en obras de construccion. Tu tarea es extraer datos estructurados del proyecto del siguiente transcript de voz.
 
+### CONTEXTO RECIENTE DE LA OBRA:
+{{context}}
+
 TRANSCRIPT:
 "{{transcript}}"
 

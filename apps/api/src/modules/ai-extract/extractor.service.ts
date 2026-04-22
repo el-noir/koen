@@ -14,9 +14,12 @@ export class ExtractorService {
     this.groq = new Groq({ apiKey });
   }
 
-  async extract(transcript: string, language: string): Promise<any[]> {
+  async extract(transcript: string, language: string, context?: string): Promise<any[]> {
     const promptTemplate = language === 'es' ? EXTRACT_PROMPT_ES : EXTRACT_PROMPT_EN;
-    const prompt = promptTemplate.replace('{{transcript}}', transcript);
+    const finalContext = context || 'No context available.';
+    const prompt = promptTemplate
+      .replace('{{transcript}}', transcript)
+      .replace('{{context}}', finalContext);
 
     try {
       const completion = await this.groq.chat.completions.create({

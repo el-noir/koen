@@ -258,6 +258,7 @@ export function useProjectDetail(projectId: string) {
       });
 
       const record = await uploadRecord(projectId, blob);
+      vibrateConfirm();
       setLatestCapture({
         phase: 'processing',
         startedAt,

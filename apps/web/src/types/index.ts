@@ -30,6 +30,15 @@ export interface Project {
   startDate: string;
   stage: ProjectStage;
   createdAt: string;
+  members?: ProjectMember[];
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string;
+  user?: User;
+  createdAt: string;
 }
 
 export interface VoiceRecord {
@@ -105,6 +114,28 @@ export interface ExtractionResult {
   language: Language;
   extracted: ExtractedData[];
   needsConfirmation: boolean;
+}
+
+export enum InvitationStatus {
+  PENDING = 'PENDING',
+  ACCEPTED = 'ACCEPTED',
+  EXPIRED = 'EXPIRED',
+}
+
+export interface Invitation {
+  id: string;
+  email: string;
+  role: UserRole;
+  token: string;
+  projectId?: string;
+  invitedById: string;
+  status: InvitationStatus;
+  expiresAt: string;
+  createdAt: string;
+  invitedBy?: {
+    name: string;
+    email: string;
+  };
 }
 
 export interface ApiResponse<T> {

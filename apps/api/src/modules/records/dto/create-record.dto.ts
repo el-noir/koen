@@ -19,4 +19,9 @@ export class CreateRecordDto {
   @IsString()
   @IsOptional()
   transcript?: string;
+
+  @ApiProperty({ example: 'audio/project-id/name.webm', required: false })
+  @IsString()
+  @IsOptional()
+  cloudKey?: string;
 }

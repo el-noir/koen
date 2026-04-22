@@ -10,6 +10,7 @@ import { PendingReviewsSection } from './components/PendingReviewsSection';
 import { ProjectHeader } from './components/ProjectHeader';
 import { ProjectLoadErrorState } from './components/ProjectLoadErrorState';
 import { ProjectStatusSection } from './components/ProjectStatusSection';
+import { ProjectTeam } from './components/ProjectTeam';
 import { RecentHistorySection } from './components/RecentHistorySection';
 import { useProjectDetail } from './hooks/useProjectDetail';
 
@@ -111,6 +112,8 @@ export default function ProjectDetailPage({ params }: { params: Promise<{ id: st
             toggleHistoryRecord={toggleHistoryRecord}
             totalCount={sortedRecords.length}
           />
+
+          <ProjectTeam project={project} onRefresh={retryProjectLoad} />
 
           <CategoryViewsSection records={categoryRecords} />
         </div>

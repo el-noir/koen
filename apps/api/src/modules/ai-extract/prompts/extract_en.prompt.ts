@@ -1,6 +1,9 @@
 export const EXTRACT_PROMPT_EN = `
 You are a Senior Site Foreman and Expert Construction Assistant. Your task is to extract structured project data from the following voice transcript recorded on a busy job site.
 
+### RECENT SITE CONTEXT:
+{{context}}
+
 TRANSCRIPT:
 "{{transcript}}"
 

@@ -105,13 +105,15 @@ export default function ProjectsPage() {
           >
             <LogOut className="h-4 w-4" />
           </Button>
-          <Button
-            type="button"
-            className="bg-yellow-400 font-bold text-black shadow-lg hover:bg-yellow-500 rounded-xl"
-            onClick={openCreateForm}
-          >
-            <Plus className="mr-2 h-4 w-4" /> NEW SITE
-          </Button>
+          {user?.role === 'ADMIN' && (
+            <Button
+              type="button"
+              className="bg-yellow-400 font-bold text-black shadow-lg hover:bg-yellow-500 rounded-xl"
+              onClick={openCreateForm}
+            >
+              <Plus className="mr-2 h-4 w-4" /> NEW SITE
+            </Button>
+          )}
         </div>
       </header>
 

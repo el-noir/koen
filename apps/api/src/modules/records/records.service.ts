@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 import { CreateRecordDto } from './dto/create-record.dto';
@@ -16,7 +16,7 @@ export class RecordsService {
     private readonly storageService: StorageService,
   ) { }
 
-  async create(dto: CreateRecordDto, file: Express.Multer.File, userId: string) {
+  async create(dto: CreateRecordDto, file?: Express.Multer.File, userId?: string) {
     // Phase 3.4: Verify membership before uploading
     const project = await this.prisma.project.findFirst({
       where: {
@@ -32,28 +32,47 @@ export class RecordsService {
       throw new NotFoundException('Project not found or you do not have permission to record for it');
     }
 
-    this.logger.log(`Processing upload for project ${dto.projectId} - ${file.filename}`);
+    let audioUrl: string;
 
-    // Phase 3.3: Upload to cloud storage (DO Spaces)
-    const cloudUrl = await this.storageService.uploadFile(file);
+    if (dto.cloudKey) {
+      // Phase 3.6: Direct Cloud Upload
+      this.logger.log(`Processing direct cloud registration for project ${dto.projectId} - ${dto.cloudKey}`);
+      audioUrl = dto.cloudKey;
+    } else if (file) {
+      // Phase 3.3: Traditional Upload Fallback
+      this.logger.log(`Processing legacy upload for project ${dto.projectId} - ${file.filename}`);
+      audioUrl = await this.storageService.uploadFile(file);
+    } else {
+      throw new BadRequestException('No audio file or cloud key provided');
+    }
 
     const record = await this.prisma.voiceRecord.create({
       data: {
         projectId: dto.projectId,
-        userId,
-        audioUrl: cloudUrl,
-        transcript: '',
+        userId: userId || 'system',
+        audioUrl,
+        transcript: dto.transcript || '',
         language: dto.language,
         confidenceScore: 0,
       },
     });
 
-    // Trigger AI extraction asynchronously and return immediately for Stage 1.
+    // Phase 3.6: Return a signed URL so the frontend can play it immediately
+    let signedUrl = record.audioUrl;
+    if (record.audioUrl.startsWith('audio/') || record.audioUrl.includes('digitaloceanspaces.com')) {
+      try {
+        signedUrl = await this.storageService.getDownloadUrl(record.audioUrl);
+      } catch (err) {
+        this.logger.warn(`Failed to sign URL for new record ${record.id}: ${err.message}`);
+      }
+    }
+
+    // Trigger AI extraction asynchronously
     this.aiExtractService.processRecord(record.id).catch((err) => {
       this.logger.error(`AI extraction failed for record ${record.id}`, err.stack);
     });
 
-    return presentRecord({ ...record, extracted: [] });
+    return presentRecord({ ...record, audioUrl: signedUrl, extracted: [] });
   }
 
   async findByProject(projectId: string, userId: string) {
@@ -78,6 +97,24 @@ export class RecordsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    return records.map((record) => presentRecord(record));
+    return Promise.all(
+      records.map(async (record) => {
+        let signedUrl = record.audioUrl;
+        
+        // Phase 3.6: Generate signed URLs for private storage
+        if (record.audioUrl.startsWith('audio/') || record.audioUrl.includes('digitaloceanspaces.com')) {
+          try {
+            signedUrl = await this.storageService.getDownloadUrl(record.audioUrl);
+          } catch (err) {
+            this.logger.warn(`Failed to sign URL for record ${record.id}: ${err.message}`);
+          }
+        }
+        
+        return presentRecord({
+          ...record,
+          audioUrl: signedUrl,
+        });
+      })
+    );
   }
 }

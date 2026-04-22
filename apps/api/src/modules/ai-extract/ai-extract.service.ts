@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { unlink } from 'fs/promises';
 import { PrismaService } from '../../database/prisma.service';
+import { StorageService } from '../storage/storage.service';
 import { WhisperService } from './whisper.service';
 import { ExtractorService } from './extractor.service';
 
@@ -14,6 +15,7 @@ export class AiExtractService {
     private readonly configService: ConfigService,
     private readonly whisperService: WhisperService,
     private readonly extractorService: ExtractorService,
+    private readonly storageService: StorageService,
   ) {}
 
   /**
@@ -27,20 +29,42 @@ export class AiExtractService {
     const record = await this.prisma.voiceRecord.findUnique({
       where: { id: recordId },
     });
-    if (!record) return;
-    if (!record.audioUrl) {
-      this.logger.warn(`Record ${recordId} has no temporary audio path to process.`);
-      return;
-    }
+    if (!record || !record.audioUrl) return;
 
     try {
+      // Phase 3.6: Get a signed URL if it's a private cloud file
+      let processingUrl = record.audioUrl;
+      if (record.audioUrl.startsWith('audio/') || record.audioUrl.includes('digitaloceanspaces.com')) {
+        try {
+          processingUrl = await this.storageService.getDownloadUrl(record.audioUrl);
+        } catch (err) {
+          this.logger.error(`Failed to sign URL for transcription: ${err.message}`);
+          // Fallback to the raw URL if signing fails (might work if public)
+        }
+      }
+
       // 1. Transcribe audio using Groq Whisper
-      const { text, language } = await this.whisperService.transcribe(record.audioUrl);
+      const { text, language } = await this.whisperService.transcribe(processingUrl);
       this.logger.log(`Transcription: ${text}`);
 
-      // 2. Extract structured entities using Llama-3 (Groq)
-      const entities = await this.extractorService.extract(text, record.language || language);
-      this.logger.log(`Extracted ${entities.length} entities`);
+      // Phase 3.7: Fetch historical context (last 3 confirmed items)
+      const recentData = await this.prisma.extractedData.findMany({
+        where: { projectId: record.projectId, confirmed: true },
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+      });
+
+      const contextString = recentData.length > 0
+        ? recentData.map(d => `- [${d.category}]: ${JSON.stringify(d.content)}`).join('\n')
+        : 'No previous context available.';
+
+      // 2. Extract structured entities with context
+      const entities = await this.extractorService.extract(
+        text, 
+        record.language || language,
+        contextString
+      );
+      this.logger.log(`Extracted ${entities.length} entities with site context`);
 
       // 3. Update the record with transcript
       await this.prisma.voiceRecord.update({
@@ -62,8 +86,8 @@ export class AiExtractService {
             voiceRecordId: recordId,
             projectId: record.projectId,
             userId: record.userId,
-            category: entity.category, // e.g., 'task', 'material'
-            content: entity.content,   // JSON object
+            category: entity.category,
+            content: entity.content,
             confidence: entity.confidence || 0,
             confirmed: (entity.confidence || 0) >= confidenceThreshold,
           },
@@ -73,19 +97,19 @@ export class AiExtractService {
       await Promise.all(createDataPromises);
       this.logger.log(`Finished processing record ${recordId}`);
     } catch (err) {
-      this.logger.error(`Failed to process record ${recordId}`, err);
+      this.logger.error(`Failed to process record ${recordId}`, err instanceof Error ? err.stack : err);
     } finally {
       await this.cleanupTemporaryAudio(recordId, record.audioUrl);
     }
   }
 
   private async cleanupTemporaryAudio(recordId: string, audioPath: string) {
-    // Phase 3.3: Only cleanup if it's a local file path. 
-    // Cloud URLs should be preserved in the DB and not unlinked.
-    if (!audioPath || audioPath.startsWith('http')) {
+    // Phase 3.6: If it's a cloud path (starts with audio/ or http), keep it in the DB!
+    if (!audioPath || audioPath.startsWith('http') || audioPath.startsWith('audio/')) {
       return;
     }
 
+    // Only cleanup local files
     try {
       await unlink(audioPath);
     } catch (err) {

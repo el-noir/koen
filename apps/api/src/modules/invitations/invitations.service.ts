@@ -95,4 +95,40 @@ export class InvitationsService {
       data: { status: InvitationStatus.ACCEPTED },
     });
   }
+
+  async findAll(projectId?: string, invitedById?: string) {
+    return this.prisma.invitation.findMany({
+      where: {
+        projectId,
+        invitedById,
+        // We might want to see all regardless of status, but filtered by project/admin
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        invitedBy: {
+          select: { name: true, email: true },
+        },
+      },
+    });
+  }
+
+  async revoke(id: string, invitedById: string) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { id },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invitation not found');
+    }
+
+    // Only the person who sent it (or an admin conceptually) can revoke it
+    if (invitation.invitedById !== invitedById) {
+      throw new BadRequestException('You do not have permission to revoke this invitation');
+    }
+
+    return this.prisma.invitation.update({
+      where: { id },
+      data: { status: InvitationStatus.EXPIRED },
+    });
+  }
 }
