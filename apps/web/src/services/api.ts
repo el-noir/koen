@@ -1,24 +1,14 @@
-function getApiBase() {
-  const configuredBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-  return configuredBase.endsWith('/api') ? configuredBase : `${configuredBase.replace(/\/$/, '')}/api`;
-}
+// apps/web/src/services/api.ts
+// Typed API client for the Next.js frontend
 
-const API_BASE = getApiBase();
+const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  || 'http://localhost:4000/api';
 
 async function parseResponse<T>(response: Response): Promise<T> {
-  const payload = await response.json().catch(() => null);
+  const payload = await response.json();
 
   if (!response.ok) {
-    const backendMessage =
-      typeof payload?.message === 'string'
-        ? payload.message
-        : Array.isArray(payload?.message)
-          ? payload.message.join(', ')
-          : typeof payload?.error === 'string'
-            ? payload.error
-            : response.statusText || 'Request failed';
-
-    throw new Error(`API Error (${response.status}): ${backendMessage}`);
+    throw new Error(`API Error: ${response.statusText}`);
   }
 
   return payload?.data ?? payload;
