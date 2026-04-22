@@ -1,0 +1,79 @@
+import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { CreateInvitationDto } from './dto/create-invitation.dto';
+import { InvitationStatus } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
+
+@Injectable()
+export class InvitationsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateInvitationDto, invitedById: string) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('A user with this email already exists');
+    }
+
+    // Deactivate any existing pending invitations for this email
+    await this.prisma.invitation.updateMany({
+      where: {
+        email: dto.email,
+        status: InvitationStatus.PENDING,
+      },
+      data: {
+        status: InvitationStatus.EXPIRED,
+      },
+    });
+
+    const token = uuidv4();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 3); // 3 days expiry as per request
+
+    return this.prisma.invitation.create({
+      data: {
+        email: dto.email,
+        role: dto.role,
+        token,
+        expiresAt,
+        invitedById,
+        status: InvitationStatus.PENDING,
+      },
+    });
+  }
+
+  async validateToken(token: string) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token },
+    });
+
+    if (!invitation) {
+      throw new NotFoundException('Invalid invitation token');
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new BadRequestException(`Invitation has already been ${invitation.status.toLowerCase()}`);
+    }
+
+    if (new Date() > invitation.expiresAt) {
+      await this.prisma.invitation.update({
+        where: { id: invitation.id },
+        data: { status: InvitationStatus.EXPIRED },
+      });
+      throw new BadRequestException('Invitation token has expired');
+    }
+
+    return invitation;
+  }
+
+  async accept(token: string) {
+    const invitation = await this.validateToken(token);
+    
+    return this.prisma.invitation.update({
+      where: { id: invitation.id },
+      data: { status: InvitationStatus.ACCEPTED },
+    });
+  }
+}

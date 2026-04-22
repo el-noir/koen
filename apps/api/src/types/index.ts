@@ -17,10 +17,16 @@ export type VoiceRecordProcessingStatus = 'processing' | 'needs_confirmation' | 
 // Core Entities
 // ─────────────────────────────────────────────────────────────────────────────
 
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  WORKER = 'WORKER',
+}
+
 export interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
   language: Language;
   createdAt: string;
 }

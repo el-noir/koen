@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+
 import { CreateRecordDto } from './dto/create-record.dto';
+import { StorageService } from '../storage/storage.service';
 import { AiExtractService } from '../ai-extract/ai-extract.service';
 import { presentRecord } from './record-presenter';
 
@@ -11,18 +13,20 @@ export class RecordsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly aiExtractService: AiExtractService,
+    private readonly storageService: StorageService,
   ) {}
 
   async create(dto: CreateRecordDto, file: Express.Multer.File, userId: string) {
-    this.logger.log(`Creating record for project ${dto.projectId} - ${file.filename}`);
+    this.logger.log(`Processing upload for project ${dto.projectId} - ${file.filename}`);
 
-    // Stage 1 keeps transcript and extracted data, not durable audio storage.
-    // The uploaded file path is temporary and cleared after processing.
+    // Phase 3.3: Upload to cloud storage (DO Spaces)
+    const cloudUrl = await this.storageService.uploadFile(file);
+
     const record = await this.prisma.voiceRecord.create({
       data: {
         projectId: dto.projectId,
         userId,
-        audioUrl: file.path,
+        audioUrl: cloudUrl,
         transcript: '',
         language: dto.language,
         confidenceScore: 0,

@@ -3,13 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Folder, Calendar, ChevronRight } from 'lucide-react';
+import { Plus, Folder, Calendar, ChevronRight, LogOut, User as UserIcon } from 'lucide-react';
 import { api } from '../../services/api';
 import { CreateProjectDto, Project, ProjectStage } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/lib/auth-context';
+import { LoaderCircle } from 'lucide-react';
 
 const PROJECT_STAGES: ProjectStage[] = ['foundations', 'framing', 'cladding', 'finishing'];
 
@@ -22,6 +24,7 @@ const DEFAULT_PROJECT_FORM: CreateProjectDto = {
 
 export default function ProjectsPage() {
   const router = useRouter();
+  const { user, logout, isLoading } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -31,6 +34,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     async function load() {
+      if (!user) return;
       try {
         const data = await api.fetch<Project[]>('/projects');
         setProjects(data);
@@ -40,8 +44,10 @@ export default function ProjectsPage() {
         setLoading(false);
       }
     }
-    void load();
-  }, []);
+    if (!isLoading) {
+      void load();
+    }
+  }, [user, isLoading]);
 
   async function handleCreateProject(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,20 +73,46 @@ export default function ProjectsPage() {
     setShowCreateForm(true);
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <LoaderCircle className="h-8 w-8 animate-spin text-yellow-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background p-6 lg:p-10">
-      <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold tracking-tight">KOEN</h1>
-          <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest">Voice-First Site Notes</p>
+      <header className="mb-10 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400">
+            <UserIcon className="h-6 w-6 text-black" />
+          </div>
+          <div className="space-y-0.5">
+            <h1 className="text-2xl font-bold tracking-tight">Hi, {user?.name.split(' ')[0]}</h1>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-70">KOEN SITE ASSISTANT</p>
+          </div>
         </div>
-        <Button
-          type="button"
-          className="bg-yellow-400 font-bold text-black shadow-lg hover:bg-yellow-500"
-          onClick={openCreateForm}
-        >
-          <Plus className="mr-2 h-4 w-4" /> NEW SITE
-        </Button>
+        
+        <div className="flex items-center gap-3">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="rounded-xl border border-border/40 text-muted-foreground hover:bg-red-500/10 hover:text-red-500 transition-colors"
+            onClick={logout}
+            title="Logout"
+          >
+            <LogOut className="h-4 w-4" />
+          </Button>
+          <Button
+            type="button"
+            className="bg-yellow-400 font-bold text-black shadow-lg hover:bg-yellow-500 rounded-xl"
+            onClick={openCreateForm}
+          >
+            <Plus className="mr-2 h-4 w-4" /> NEW SITE
+          </Button>
+        </div>
       </header>
 
       {showCreateForm && (

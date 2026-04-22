@@ -1,10 +1,13 @@
-import { Controller, Patch, Param, Body, ParseUUIDPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Patch, Param, Body, ParseUUIDPipe, UseGuards } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ConfirmService } from './confirm.service';
 import { UpdateExtractedDataDto } from './dto/update-confirm.dto';
-import { STAGE1_USER_ID } from '../../constants/stage1-user';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CurrentUser, UserContext } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('confirm')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
 @Controller('confirm')
 export class ConfirmController {
   constructor(private readonly confirmService: ConfirmService) {}
@@ -14,7 +17,8 @@ export class ConfirmController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateExtractedDataDto,
+    @CurrentUser() user: UserContext,
   ) {
-    return this.confirmService.update(id, dto, STAGE1_USER_ID);
+    return this.confirmService.update(id, dto, user.userId);
   }
 }

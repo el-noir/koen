@@ -13,11 +13,25 @@ export class WhisperService {
   }
 
   async transcribe(filePath: string): Promise<{ text: string; language: string }> {
+    let fileSource: any;
+
+    if (filePath.startsWith('http')) {
+      const response = await fetch(filePath);
+      const buffer = await response.arrayBuffer();
+      // Groq SDK can take a File or a Stream. 
+      // In Node 20+, we can use a Blob-like object or a Buffer wrapped in a File.
+      const filename = filePath.split('/').pop() || 'audio.webm';
+      fileSource = new File([buffer], filename, { type: 'audio/webm' });
+    } else {
+      fileSource = fs.createReadStream(filePath);
+    }
+
     const response = await this.groq.audio.transcriptions.create({
-      file: fs.createReadStream(filePath),
+      file: fileSource as any,
       model: 'whisper-large-v3-turbo',
       response_format: 'verbose_json',
     });
+
     const verboseResponse = response as typeof response & { language?: string };
 
     return {

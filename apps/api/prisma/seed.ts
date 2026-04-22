@@ -1,16 +1,25 @@
-import { PrismaClient } from '@prisma/client';
-import { STAGE1_USER_ID } from '../src/constants/stage1-user';
+import { PrismaClient, UserRole } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
+const MASTER_ADMIN_ID = '00000000-0000-0000-0000-000000000000';
+
 async function main() {
+  const passwordHash = await bcrypt.hash('password123', 10);
+
   const user = await prisma.user.upsert({
-    where: { id: STAGE1_USER_ID },
-    update: {},
+    where: { email: 'admin@koen.app' },
+    update: {
+      passwordHash,
+      role: UserRole.ADMIN,
+    },
     create: {
-      id: STAGE1_USER_ID,
-      email: 'koen@example.com',
-      name: 'Stage 1 User',
+      id: MASTER_ADMIN_ID,
+      email: 'admin@koen.app',
+      name: 'Master Admin',
+      passwordHash,
+      role: UserRole.ADMIN,
     },
   });
 

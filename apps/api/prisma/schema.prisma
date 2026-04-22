@@ -35,17 +35,47 @@ enum DataCategory {
 // Models
 // ─────────────────────────────────────────────────────────────────────────────
 
-model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  language  String   @default("en") // "en" or "es" — Stage 1B
-  createdAt DateTime @default(now())
+enum UserRole {
+  ADMIN
+  WORKER
+}
 
-  projects Project[]
-  records  VoiceRecord[]
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String?  // Optional for now to support Stage 1 seed users, but required for new signups
+  role         UserRole @default(WORKER)
+  language     String   @default("en")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  projects    Project[]
+  records     VoiceRecord[]
+  invitations Invitation[]
 
   @@map("users")
+}
+
+model Invitation {
+  id        String           @id @default(uuid())
+  email     String           @unique
+  token     String           @unique
+  role      UserRole         @default(WORKER)
+  status    InvitationStatus @default(PENDING)
+  expiresAt DateTime
+  createdAt DateTime         @default(now())
+
+  invitedById String
+  invitedBy   User   @relation(fields: [invitedById], references: [id])
+
+  @@map("invitations")
 }
 
 model Project {

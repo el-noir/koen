@@ -3,6 +3,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { RecordsController } from './records.controller';
 import { RecordsService } from './records.service';
 import { AiExtractModule } from '../ai-extract/ai-extract.module';
+import { StorageModule } from '../storage/storage.module';
 import { ensureTempUploadsDir } from './uploads-path';
 
 @Module({
@@ -11,6 +12,7 @@ import { ensureTempUploadsDir } from './uploads-path';
       dest: ensureTempUploadsDir(),
     }),
     AiExtractModule,
+    StorageModule,
   ],
   controllers: [RecordsController],
   providers: [RecordsService],

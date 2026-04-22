@@ -1,14 +1,26 @@
-// apps/web/src/services/api.ts
-// Typed API client for the Next.js frontend
+import { AUTH_TOKEN_KEY } from '@/utils/constants';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   || 'http://localhost:4000/api';
 
+function getAuthHeaders(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
+  if (response.status === 401) {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      // Optional: window.location.href = '/login';
+    }
+  }
+
   const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(`API Error: ${response.statusText}`);
+    throw new Error(payload?.message || `API Error: ${response.statusText}`);
   }
 
   return payload?.data ?? payload;
@@ -20,6 +32,7 @@ export const api = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
         ...options.headers,
       },
     });
@@ -32,6 +45,7 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(body),
     });
@@ -44,6 +58,7 @@ export const api = {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       body: JSON.stringify(body),
     });
@@ -59,6 +74,9 @@ export const api = {
 
     const response = await fetch(`${API_BASE}/records/upload`, {
       method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
       body: formData,
     });
 

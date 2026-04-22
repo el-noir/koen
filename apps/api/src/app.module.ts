@@ -5,6 +5,9 @@ import { ProjectsModule } from './modules/projects/projects.module';
 import { RecordsModule } from './modules/records/records.module';
 import { AiExtractModule } from './modules/ai-extract/ai-extract.module';
 import { ConfirmModule } from './modules/confirm/confirm.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
+import { StorageModule } from './modules/storage/storage.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -19,6 +22,9 @@ import configuration from './config/configuration';
     RecordsModule,
     AiExtractModule,
     ConfirmModule,
+    AuthModule,
+    InvitationsModule,
+    StorageModule,
   ],
 })
 export class AppModule { }

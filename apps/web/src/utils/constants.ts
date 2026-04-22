@@ -14,3 +14,6 @@ export const PROJECT_STAGES = [
 ] as const;
 
 export const CONFIDENCE_THRESHOLD = 0.85;
+
+export const AUTH_TOKEN_KEY = 'koen_auth_token';
+export const AUTH_USER_KEY = 'koen_auth_user';

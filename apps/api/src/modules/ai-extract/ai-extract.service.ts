@@ -80,6 +80,12 @@ export class AiExtractService {
   }
 
   private async cleanupTemporaryAudio(recordId: string, audioPath: string) {
+    // Phase 3.3: Only cleanup if it's a local file path. 
+    // Cloud URLs should be preserved in the DB and not unlinked.
+    if (!audioPath || audioPath.startsWith('http')) {
+      return;
+    }
+
     try {
       await unlink(audioPath);
     } catch (err) {

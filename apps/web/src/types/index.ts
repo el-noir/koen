@@ -1,17 +1,25 @@
 export type ProjectStage = 'foundations' | 'framing' | 'cladding' | 'finishing';
-
 export type DataCategory = 'task' | 'material' | 'hours' | 'event' | 'note';
-
 export type Language = 'en' | 'es';
-
 export type VoiceRecordProcessingStatus = 'processing' | 'needs_confirmation' | 'processed';
+
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  WORKER = 'WORKER',
+}
 
 export interface User {
   id: string;
   name: string;
   email: string;
+  role: UserRole;
   language: Language;
   createdAt: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  user: User;
 }
 
 export interface Project {
