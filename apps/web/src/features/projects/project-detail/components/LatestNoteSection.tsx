@@ -93,11 +93,11 @@ export function LatestNoteSection({
         <div className="absolute top-1.5 left-1.5 text-[9px] text-primary/20 font-mono">+</div>
         <div className="absolute top-1.5 right-1.5 text-[9px] text-primary/20 font-mono">+</div>
 
-        <CardContent className="p-5">
-          <div className="flex items-start gap-4">
+        <CardContent className="p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row items-start gap-4">
             <motion.div
               variants={itemVariants}
-              className="mt-1"
+              className="mt-0.5 sm:mt-1 flex-shrink-0"
             >
               {latestCapture ? (
                 latestCapture.phase === 'queued_offline' ? (
@@ -117,33 +117,33 @@ export function LatestNoteSection({
                 <div className="led-pulse led-green h-5 w-5 border border-emerald-500/20 rounded-full flex items-center justify-center"><Check className="h-3 w-3" /></div>
               )}
             </motion.div>
-
-            <div className="min-w-0 flex-1 space-y-6">
+ 
+            <div className="min-w-0 flex-1 space-y-4 sm:space-y-6">
               <motion.div variants={itemVariants} className="space-y-3">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-primary">
+                    <span className="text-[9px] sm:text-[10px] font-mono font-black uppercase tracking-[0.2em] text-primary">
                       {latestCapture ? '[INTEL.LIVE_CAP]' : '[SITE.LEDGER_SYNC]'}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-muted-foreground/30 uppercase tracking-widest border-l border-white/5 pl-4">
+                  <span className="text-[9px] sm:text-[10px] font-mono font-bold text-muted-foreground/30 uppercase tracking-widest sm:border-l sm:border-white/5 sm:pl-4">
                     T_{formatShortTime(latestCapture?.startedAt || primaryRecord!.createdAt)}
                   </span>
                   {!latestCapture && primaryRecord && (
                     <Badge
                       variant="outline"
-                      className={`text-[9px] font-mono font-black uppercase tracking-wider h-5 px-3 border-primary/20 ${getProcessingBadgeClass(primaryRecord)}`}
+                      className={`text-[8px] sm:text-[9px] font-mono font-black uppercase tracking-wider h-5 px-3 border-primary/20 ${getProcessingBadgeClass(primaryRecord)}`}
                     >
                       {getProcessingLabel(primaryRecord)}
                     </Badge>
                   )}
                 </div>
-                <h2 className="text-xl font-bold tracking-tight text-foreground uppercase">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-foreground uppercase leading-tight">
                   {latestCapture
                     ? formatLatestCaptureTitle(latestCapture, latestCaptureRecord)
                     : formatPrimaryRecordTitle(primaryRecord!)}
                 </h2>
-                <div className="text-[11px] font-mono font-medium leading-relaxed text-muted-foreground/40 uppercase tracking-wide">
+                <div className="text-[10px] sm:text-[11px] font-mono font-medium leading-relaxed text-muted-foreground/40 uppercase tracking-wide">
                   {latestCapture
                     ? formatLatestCaptureDetail(latestCapture, latestCaptureRecord)
                     : formatPrimaryRecordDetail(primaryRecord!)}

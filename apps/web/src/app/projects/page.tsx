@@ -94,47 +94,49 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-transparent p-6 lg:p-10">
-      <header className="relative mb-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-        <div className="absolute -left-10 -top-10 h-32 w-32 border-l border-t border-primary/20 pointer-events-none" />
-        <div className="flex items-center gap-5">
+    <div className="min-h-screen bg-transparent p-4 sm:p-10">
+      <header className="relative mb-8 sm:mb-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="absolute -left-4 -top-4 sm:-left-10 sm:-top-10 h-24 w-24 sm:h-32 sm:w-32 border-l border-t border-primary/20 pointer-events-none" />
+        <div className="flex items-center gap-4 sm:gap-5">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-black shadow-lg gold-glow structural-corner"
+            className="flex h-12 w-12 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-black shadow-lg gold-glow structural-corner"
           >
-            <UserIcon className="h-7 w-7" />
+            <UserIcon className="h-6 w-6 sm:h-7 sm:w-7" />
           </motion.div>
           <div className="space-y-1">
-            <h1 className="text-3xl font-bold tracking-tight">Hi, {user?.name.split(' ')[0]}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight uppercase">Hi, {user?.name.split(' ')[0]}</h1>
             <div className="flex items-center gap-2">
               <div className="led-pulse led-green h-1.5 w-1.5" />
-              <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-primary opacity-80">
-                SYSTEM.ACTIVE // {user?.role}.AUTHORIZED // ID_{user?.id.slice(0, 4)}
+              <p className="text-[9px] sm:text-[10px] font-mono font-bold uppercase tracking-[0.15em] sm:tracking-[0.2em] text-primary opacity-80 truncate max-w-[180px] sm:max-w-none">
+                SYS.ACTIVE // {user?.role.toUpperCase()} // ID_{user?.id.slice(0, 4)}
               </p>
             </div>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-12 w-12 rounded-xl border border-border/40 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
-            onClick={logout}
-            title="Logout"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+        <div className="flex items-center justify-between sm:justify-end gap-3 border-t border-primary/10 pt-4 sm:border-none sm:pt-0">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl border border-border/40 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-all"
+              onClick={logout}
+              title="Logout"
+            >
+              <LogOut className="h-4 w-4 sm:h-5 sm:w-5" />
+            </Button>
+          </div>
           {user?.role === 'ADMIN' && (
             <Button
               type="button"
-              className="bg-primary h-12 px-6 font-bold text-black shadow-lg hover:bg-primary/90 rounded-xl gold-glow border-none"
+              className="bg-primary h-10 sm:h-12 px-4 sm:px-6 font-mono font-black text-[10px] sm:text-xs text-black shadow-lg hover:bg-primary/90 rounded-xl gold-glow border-none"
               onClick={openCreateForm}
             >
-              <Plus className="mr-2 h-5 w-5" /> NEW SITE
+              <Plus className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" /> [NEW_SITE]
             </Button>
           )}
         </div>
@@ -262,7 +264,7 @@ export default function ProjectsPage() {
           variants={{
             visible: { transition: { staggerChildren: 0.08 } }
           }}
-          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3"
         >
           {projects.map((project, idx) => (
             <motion.div

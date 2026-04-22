@@ -39,23 +39,23 @@ export function ConfirmationCard({
   return (
     <Card className="border-primary/20 bg-card/30 industrial-shadow structural-corner relative overflow-hidden">
       <CardContent className="p-4">
-        <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="mb-3 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex-1 space-y-2">
             <div className="flex items-center gap-2">
               <div className="led-pulse led-amber h-1.5 w-1.5" />
-              <Badge variant="outline" className="border-primary/40 bg-primary/5 text-[9px] font-mono font-black uppercase tracking-widest text-primary h-5 px-3">
+              <Badge variant="outline" className="border-primary/40 bg-primary/5 text-[8px] sm:text-[9px] font-mono font-black uppercase tracking-widest text-primary h-5 px-3">
                 {formatCategoryLabel(item.category)}
               </Badge>
             </div>
-            <div className="text-[13px] font-mono font-bold tracking-tight text-foreground leading-relaxed">
+            <div className="text-[12px] sm:text-[13px] font-mono font-bold tracking-tight text-foreground leading-relaxed">
               {formatExtractedContent(item)}
             </div>
           </div>
  
-          <div className="flex shrink-0 flex-wrap gap-2 pt-1">
+          <div className="flex shrink-0 w-full sm:w-auto gap-2">
             <Button
               size="sm"
-              className="bg-primary h-8 px-4 font-mono font-black text-[10px] text-black hover:bg-primary/90 structural-corner"
+              className="flex-1 sm:flex-none bg-primary h-10 sm:h-8 px-4 font-mono font-black text-[10px] text-black hover:bg-primary/90 structural-corner"
               disabled={isSaving}
               onClick={() => void saveConfirmation(item)}
             >
@@ -65,7 +65,7 @@ export function ConfirmationCard({
             <Button
               size="sm"
               variant="outline"
-              className="h-8 px-4 font-mono font-black text-[10px] border-primary/20 hover:bg-primary/5 text-primary/70"
+              className="flex-1 sm:flex-none h-10 sm:h-8 px-4 font-mono font-black text-[10px] border-primary/20 hover:bg-primary/5 text-primary/70"
               disabled={isSaving}
               onClick={() => startEditing(item)}
             >
