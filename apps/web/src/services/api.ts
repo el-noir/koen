@@ -1,4 +1,5 @@
 import { AUTH_TOKEN_KEY } from '@/utils/constants';
+import { Invitation } from '@/types';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL
   || 'http://localhost:4000/api';
@@ -61,6 +62,17 @@ export const api = {
         ...getAuthHeaders(),
       },
       body: JSON.stringify(body),
+    });
+
+    return parseResponse<T>(response);
+  },
+
+  async delete<T = unknown>(endpoint: string) {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
     });
 
     return parseResponse<T>(response);
