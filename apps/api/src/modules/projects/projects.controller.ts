@@ -7,11 +7,13 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
+import { AddMemberDto } from './dto/add-member.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser, UserContext } from '../auth/decorators/current-user.decorator';
 
@@ -29,13 +31,13 @@ export class ProjectsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'List all projects for current user' })
+  @ApiOperation({ summary: 'List all projects accessible by current user (Owner or Member)' })
   findAll(@CurrentUser() user: UserContext) {
     return this.projectsService.findAll(user.userId);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a project with all records' })
+  @ApiOperation({ summary: 'Get a project with all records (Access: Owner or Member)' })
   findOne(@Param('id') id: string, @CurrentUser() user: UserContext) {
     return this.projectsService.findOne(id, user.userId);
   }
@@ -51,8 +53,28 @@ export class ProjectsController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a project' })
+  @ApiOperation({ summary: 'Delete a project (Owner only)' })
   remove(@Param('id') id: string, @CurrentUser() user: UserContext) {
     return this.projectsService.remove(id, user.userId);
+  }
+
+  @Post(':id/members')
+  @ApiOperation({ summary: 'Add a user to the project team (Owner only)' })
+  addMember(
+    @Param('id') id: string,
+    @Body() dto: AddMemberDto,
+    @CurrentUser() user: UserContext,
+  ) {
+    return this.projectsService.addMember(id, dto.email, user.userId);
+  }
+
+  @Delete(':id/members/:memberUserId')
+  @ApiOperation({ summary: 'Remove a user from the project team (Owner only)' })
+  removeMember(
+    @Param('id') id: string,
+    @Param('memberUserId') memberUserId: string,
+    @CurrentUser() user: UserContext,
+  ) {
+    return this.projectsService.removeMember(id, memberUserId, user.userId);
   }
 }

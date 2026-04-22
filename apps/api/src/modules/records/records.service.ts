@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 
 import { CreateRecordDto } from './dto/create-record.dto';
@@ -14,9 +14,24 @@ export class RecordsService {
     private readonly prisma: PrismaService,
     private readonly aiExtractService: AiExtractService,
     private readonly storageService: StorageService,
-  ) {}
+  ) { }
 
   async create(dto: CreateRecordDto, file: Express.Multer.File, userId: string) {
+    // Phase 3.4: Verify membership before uploading
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: dto.projectId,
+        OR: [
+          { userId },
+          { members: { some: { userId } } },
+        ],
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found or you do not have permission to record for it');
+    }
+
     this.logger.log(`Processing upload for project ${dto.projectId} - ${file.filename}`);
 
     // Phase 3.3: Upload to cloud storage (DO Spaces)
@@ -42,8 +57,23 @@ export class RecordsService {
   }
 
   async findByProject(projectId: string, userId: string) {
+    // Phase 3.4: Verify membership before returning records
+    const project = await this.prisma.project.findFirst({
+      where: {
+        id: projectId,
+        OR: [
+          { userId },
+          { members: { some: { userId } } },
+        ],
+      },
+    });
+
+    if (!project) {
+      throw new NotFoundException('Project not found or access denied');
+    }
+
     const records = await this.prisma.voiceRecord.findMany({
-      where: { projectId, userId },
+      where: { projectId },
       include: { extracted: true },
       orderBy: { createdAt: 'desc' },
     });

@@ -39,6 +39,15 @@ export interface Project {
   startDate: string;
   stage: ProjectStage;
   createdAt: string;
+  members?: ProjectMember[];
+}
+
+export interface ProjectMember {
+  id: string;
+  projectId: string;
+  userId: string;
+  user?: User;
+  createdAt: string;
 }
 
 export interface VoiceRecord {

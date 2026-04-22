@@ -11,4 +11,7 @@ export class CreateInvitationDto {
   @ApiProperty({ enum: UserRole, default: UserRole.WORKER })
   @IsEnum(UserRole)
   role: UserRole = UserRole.WORKER;
+
+  @ApiProperty({ example: 'uuid', required: false })
+  projectId?: string;
 }

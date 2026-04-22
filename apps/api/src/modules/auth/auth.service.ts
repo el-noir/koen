@@ -58,6 +58,23 @@ export class AuthService {
 
     await this.invitationsService.accept(dto.token);
 
+    // Automatically join the project if one was specified in the invitation
+    if (invitation.projectId) {
+      await this.prisma.projectMember.upsert({
+        where: {
+          projectId_userId: {
+            projectId: invitation.projectId,
+            userId: user.id,
+          },
+        },
+        update: {},
+        create: {
+          projectId: invitation.projectId,
+          userId: user.id,
+        },
+      });
+    }
+
     const payload = { sub: user.id, email: user.email, role: user.role };
     return {
       access_token: await this.jwtService.signAsync(payload),

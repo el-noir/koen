@@ -4,11 +4,20 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { InvitationStatus } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 
+import { EmailService } from '../email/email.service';
+
 @Injectable()
 export class InvitationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
   async create(dto: CreateInvitationDto, invitedById: string) {
+    const invitedByUser = await this.prisma.user.findUnique({
+      where: { id: invitedById },
+    });
+
     const existingUser = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -32,16 +41,26 @@ export class InvitationsService {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 3); // 3 days expiry as per request
 
-    return this.prisma.invitation.create({
+    const invitation = await this.prisma.invitation.create({
       data: {
         email: dto.email,
         role: dto.role,
+        projectId: dto.projectId,
         token,
         expiresAt,
         invitedById,
         status: InvitationStatus.PENDING,
       },
     });
+
+    // Send the email
+    await this.emailService.sendAccountInvitation(
+      dto.email,
+      token,
+      invitedByUser?.name || 'A KOEN Admin',
+    );
+
+    return invitation;
   }
 
   async validateToken(token: string) {

@@ -59,6 +59,7 @@ model User {
   projects    Project[]
   records     VoiceRecord[]
   invitations Invitation[]
+  memberships ProjectMember[]
 
   @@map("users")
 }
@@ -70,12 +71,26 @@ model Invitation {
   role      UserRole         @default(WORKER)
   status    InvitationStatus @default(PENDING)
   expiresAt DateTime
+  projectId String?
   createdAt DateTime         @default(now())
 
   invitedById String
   invitedBy   User   @relation(fields: [invitedById], references: [id])
 
   @@map("invitations")
+}
+
+model ProjectMember {
+  id        String   @id @default(uuid())
+  projectId String
+  userId    String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
 }
 
 model Project {
@@ -87,8 +102,9 @@ model Project {
   stage     ProjectStage
   createdAt DateTime     @default(now())
 
-  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   records VoiceRecord[]
+  members ProjectMember[]
 
   @@map("projects")
 }

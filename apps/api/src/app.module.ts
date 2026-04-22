@@ -8,6 +8,7 @@ import { ConfirmModule } from './modules/confirm/confirm.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { StorageModule } from './modules/storage/storage.module';
+import { EmailModule } from './modules/email/email.module';
 import configuration from './config/configuration';
 
 @Module({
@@ -25,6 +26,7 @@ import configuration from './config/configuration';
     AuthModule,
     InvitationsModule,
     StorageModule,
+    EmailModule,
   ],
 })
 export class AppModule { }

@@ -14,9 +14,19 @@ export class ConfirmService {
     }
 
     const data = await this.prisma.extractedData.findFirst({
-      where: { id, userId },
+      where: {
+        id,
+        voiceRecord: {
+          project: {
+            OR: [
+              { userId },
+              { members: { some: { userId } } },
+            ],
+          },
+        },
+      },
     });
-    if (!data) throw new NotFoundException(`Extracted item ${id} not found`);
+    if (!data) throw new NotFoundException(`Extracted item ${id} not found or access denied`);
 
     const content = dto.content !== undefined
       ? validateConfirmedContent(data.category, dto.content)
