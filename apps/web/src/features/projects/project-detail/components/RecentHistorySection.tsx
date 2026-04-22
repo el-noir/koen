@@ -43,71 +43,78 @@ export function RecentHistorySection({
       </div>
 
       {historyRecords.length > 0 ? (
-        <div className="space-y-3">
-          {historyRecords.map((record) => {
+        <div className="space-y-4">
+          {historyRecords.map((record, idx) => {
             const isExpanded = expandedHistoryRecordIds.includes(record.id);
 
             return (
-              <Card key={record.id} className="border-border/40 bg-card/60">
+              <Card key={record.id || `rec-${idx}`} className="glass-dark border-white/5 industrial-shadow group">
                 <CardContent className="p-0">
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-3 p-4 text-left"
+                    className="flex w-full items-center justify-between gap-4 p-5 text-left transition-colors hover:bg-white/5"
                     onClick={() => toggleHistoryRecord(record.id)}
                   >
-                    <div className="min-w-0 space-y-2">
-                      <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                    <div className="min-w-0 space-y-3">
+                      <div className="flex flex-wrap items-center gap-3 text-[10px] uppercase font-black tracking-[0.2em] text-primary/70">
                         <span className="inline-flex items-center gap-2">
-                          <MessageSquare className="h-3 w-3" />
-                          Voice note
+                          <MessageSquare className="h-3.5 w-3.5" />
+                          Site Entry
                         </span>
-                        <span>{formatShortTime(record.createdAt)}</span>
+                        <div className="h-1 w-1 rounded-full bg-white/10" />
+                        <span className="font-mono">{formatShortTime(record.createdAt)}</span>
                       </div>
-                      <p className="truncate text-sm text-foreground/90">
-                        {record.transcript.trim() || 'Transcript not available yet.'}
+                      <p className="truncate text-sm font-medium text-foreground/80 group-hover:text-foreground">
+                        {record.transcript.trim() || 'No audio recording found.'}
                       </p>
                     </div>
 
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-4">
                       <Badge
                         variant="outline"
-                        className={`text-[9px] font-mono uppercase ${getProcessingBadgeClass(record)}`}
+                        className={`text-[9px] font-black uppercase tracking-wider ${getProcessingBadgeClass(record)}`}
                       >
                         {getProcessingLabel(record)}
                       </Badge>
-                      <span className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/5 text-muted-foreground group-hover:text-primary transition-all">
                         {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                      </span>
+                      </div>
                     </div>
                   </button>
 
                   {isExpanded && (
-                    <>
-                      <Separator className="opacity-20" />
-                      <div className="space-y-3 p-4">
-                        <div className="rounded-2xl border border-border/40 bg-background/40 p-3">
-                          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                            Transcript
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      className="overflow-hidden"
+                    >
+                      <Separator className="bg-white/5" />
+                      <div className="space-y-4 p-5 pt-4">
+                        <div className="rounded-2xl border border-white/5 bg-background/40 p-4">
+                          <div className="mb-2 text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
+                            RAW TRANSCRIPT
                           </div>
                           <p className="text-sm leading-relaxed text-foreground/90">
-                            {record.transcript.trim() || 'Transcript not available yet.'}
+                            {record.transcript.trim() || 'No transcript data.'}
                           </p>
                         </div>
 
-                        <div className="rounded-2xl border border-border/40 bg-background/40 p-3">
-                          <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
-                            Structured result
+                        <div className="rounded-2xl border border-white/5 bg-background/40 p-4">
+                          <div className="mb-4 flex items-center justify-between gap-3">
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60">
+                              EXTRACTION DATA
+                            </div>
                           </div>
                           {record.extracted && record.extracted.length > 0 ? (
-                            <div className="space-y-2">
-                              {record.extracted.map((item) => (
+                            <div className="space-y-3">
+                              {record.extracted.map((item, eIdx) => (
                                 <div
-                                  key={item.id}
-                                  className="flex items-start gap-3 rounded-xl border border-border/30 bg-card/40 px-3 py-2"
+                                  key={item.id || `hist-ext-${eIdx}`}
+                                  className="flex items-start gap-4 rounded-xl border border-white/5 bg-white/5 px-4 py-3"
                                 >
                                   <Badge
                                     variant="outline"
-                                    className="min-w-20 justify-center border-yellow-500/40 bg-yellow-500/5 text-[10px] uppercase text-yellow-600"
+                                    className="min-w-24 justify-center border-primary/20 bg-primary/5 text-[9px] font-black uppercase tracking-wider text-primary"
                                   >
                                     {formatCategoryLabel(item.category)}
                                   </Badge>
@@ -118,15 +125,15 @@ export function RecentHistorySection({
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs uppercase font-mono tracking-widest text-muted-foreground/30 py-4 text-center">
                               {record.processingStatus === 'processing'
-                                ? 'KOEN is still processing this note.'
-                                : 'No structured items were produced yet.'}
+                                ? 'Analyzing telemetry...'
+                                : 'No data extracted.'}
                             </p>
                           )}
                         </div>
                       </div>
-                    </>
+                    </motion.div>
                   )}
                 </CardContent>
               </Card>
@@ -134,9 +141,11 @@ export function RecentHistorySection({
           })}
         </div>
       ) : (
-        <Card className="border-border/40 bg-card/50">
-          <CardContent className="p-4 text-sm text-muted-foreground">
-            Older notes will appear here after you record more updates.
+        <Card className="glass-dark border-white/5 bg-white/5 industrial-shadow">
+          <CardContent className="p-8 text-center">
+            <p className="text-[10px] uppercase font-mono tracking-[0.25em] text-muted-foreground/40">
+              Site history is cleared. Captures will appear here.
+            </p>
           </CardContent>
         </Card>
       )}

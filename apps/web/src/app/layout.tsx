@@ -38,6 +38,10 @@ export const viewport: Viewport = {
   themeColor: '#ffd60a',
 };
 
+import { Toaster } from 'sonner';
+
+import { ThemeProvider } from '@/components/ThemeProvider';
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -47,12 +51,29 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col">
-        <AuthProvider>
-          <PwaRegistration />
-          {children}
-        </AuthProvider>
+      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <AuthProvider>
+            <PwaRegistration />
+            {children}
+            <Toaster 
+              theme="dark" 
+              position="top-center" 
+              richColors 
+              closeButton
+              toastOptions={{
+                className: 'glass-dark border-primary/20 industrial-shadow font-sans',
+              }}
+            />
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

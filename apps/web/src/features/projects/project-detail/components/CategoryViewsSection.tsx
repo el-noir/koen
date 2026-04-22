@@ -41,8 +41,8 @@ export function CategoryViewsSection({ records }: Props) {
           <div className="grid gap-4">
             {records
               .filter((record) => record.extracted?.some((item) => item.category === tab.id))
-              .map((record) => (
-                <Card key={record.id} className="border-border/40 bg-card/50 transition-colors hover:bg-accent/30">
+              .map((record, rIdx) => (
+                <Card key={record.id || `cat-rec-${rIdx}`} className="border-border/40 bg-card/50 transition-colors hover:bg-accent/30">
                   <CardContent className="p-4">
                     <div className="mb-3 flex items-center justify-between">
                       <div className="flex items-center text-[10px] font-mono uppercase text-muted-foreground">
@@ -57,8 +57,8 @@ export function CategoryViewsSection({ records }: Props) {
                     <div className="space-y-3">
                       {record.extracted
                         ?.filter((item) => item.category === tab.id)
-                        .map((item) => (
-                          <div key={item.id} className="flex items-start gap-3">
+                        .map((item, iIdx) => (
+                          <div key={item.id || `item-${iIdx}`} className="flex items-start gap-3">
                             <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]" />
                             <div className="text-sm font-medium italic leading-relaxed text-foreground/90">
                               &ldquo;{formatExtractedContent(item)}&rdquo;

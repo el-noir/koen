@@ -16,6 +16,8 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void | Promise<void>)
   const [durationSeconds, setDurationSeconds] = useState(0);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
   const durationIntervalRef = useRef<number | null>(null);
   const startedAtRef = useRef<number | null>(null);
   const chunks = useRef<Blob[]>([]);
@@ -60,6 +62,19 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void | Promise<void>)
       setRecorderState('requesting_permission');
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
+      
+      // Setup Web Audio for visualization
+      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioContextClass();
+      const analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 256;
+      
+      const source = audioCtx.createMediaStreamSource(stream);
+      source.connect(analyser);
+      
+      audioContextRef.current = audioCtx;
+      analyserRef.current = analyser;
+
       mediaRecorder.current = new MediaRecorder(stream);
       chunks.current = [];
 
@@ -72,6 +87,13 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void | Promise<void>)
         void Promise.resolve(onFinish(audioBlob));
         streamRef.current?.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
+        
+        if (audioContextRef.current?.state !== 'closed') {
+          void audioContextRef.current?.close();
+        }
+        audioContextRef.current = null;
+        analyserRef.current = null;
+
         mediaRecorder.current = null;
         clearTimingState();
         setRecorderState('idle');
@@ -116,6 +138,9 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void | Promise<void>)
   useEffect(() => () => {
     clearTimingState();
     streamRef.current?.getTracks().forEach((track) => track.stop());
+    if (audioContextRef.current?.state !== 'closed') {
+      void audioContextRef.current?.close();
+    }
   }, [clearTimingState]);
 
   return {
@@ -123,6 +148,7 @@ export function useAudioRecorder(onFinish: (blob: Blob) => void | Promise<void>)
     recorderState,
     errorMessage,
     durationSeconds,
+    analyser: analyserRef.current,
     startRecording,
     stopRecording,
     clearError,

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Users, UserPlus, X, Shield, ShieldCheck } from 'lucide-react';
 import { Project, UserRole } from '@/types';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -27,15 +29,22 @@ export function ProjectTeam({ project, onRefresh }: ProjectTeamProps) {
     e.preventDefault();
     if (!email) return;
 
+    const targetEmail = email;
     setSubmitting(true);
     setError(null);
     try {
       await api.post(`/projects/${project.id}/members`, { email });
       setEmail('');
+      toast.success('Personnel Deployed', {
+        description: `Invitation dispatched to ${targetEmail}.`,
+      });
       onRefresh();
     } catch (err: any) {
       console.error(err);
       setError(err.message || 'Could not add member. Make sure the email is correct.');
+      toast.error('Deployment Failed', {
+        description: 'Ensure the email address is valid.',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -46,66 +55,73 @@ export function ProjectTeam({ project, onRefresh }: ProjectTeamProps) {
 
     try {
       await api.delete(`/projects/${project.id}/members/${memberUserId}`);
+      toast.success('Access Revoked', {
+        description: 'Personnel has been removed from this site.',
+      });
       onRefresh();
     } catch (err: any) {
       console.error(err);
-      alert('Failed to remove member');
+      toast.error('Revocation Failed', {
+        description: 'Could not remove member at this time.',
+      });
     }
   }
 
   return (
-    <Card className="border-border/40 bg-card/50">
-      <CardHeader className="pb-4">
+    <Card className="glass-dark border-primary/20 industrial-shadow">
+      <CardHeader className="pb-5">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-yellow-500" />
-            <CardTitle className="text-lg">Site Team</CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <Users className="h-4 w-4" />
+            </div>
+            <CardTitle className="text-xl font-bold">Site Team</CardTitle>
           </div>
-          <Badge variant="outline" className="text-[10px]">
+          <Badge variant="outline" className="text-[10px] font-mono tracking-widest bg-primary/5 text-primary border-primary/20">
             {project.members?.length || 0} MEMBERS
           </Badge>
         </div>
-        <CardDescription>
-          {canManage
-            ? 'Manage who can capture and view site updates.'
-            : 'Other workers assigned to this site.'}
+        <CardDescription className="text-muted-foreground/60">
+          {canManage 
+            ? 'Administrator view: Manage site access and site permissions.' 
+            : 'Access restricted: Viewing authorized site personnel.'}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-8">
         {/* Member List */}
         <div className="space-y-3">
           {/* Owner */}
-          <div className="flex items-center justify-between rounded-xl bg-accent/20 p-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-yellow-500/20 text-yellow-500">
-                <ShieldCheck className="h-4 w-4" />
+          <div className="flex items-center justify-between rounded-2xl bg-white/5 p-4 border border-white/5 industrial-shadow">
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/20 text-primary gold-glow">
+                <ShieldCheck className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-bold">Project Owner</p>
-                <p className="text-[10px] text-muted-foreground uppercase opacity-70">Creator</p>
+                <p className="text-sm font-black uppercase tracking-wider">Site Owner</p>
+                <p className="text-[10px] font-mono text-primary/60 uppercase tracking-widest">Master Baseline Authority</p>
               </div>
             </div>
-            <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20">OWNER</Badge>
+            <Badge className="bg-primary text-black font-black text-[9px] tracking-widest gold-glow">OWNER</Badge>
           </div>
 
           {/* Members */}
-          {project.members?.map((member) => (
-            <div key={member.id} className="flex items-center justify-between rounded-xl border border-border/40 p-3 transition-colors hover:bg-accent/10">
-              <div className="flex items-center gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                  <Shield className="h-4 w-4" />
+          {project.members?.map((member, idx) => (
+            <div key={member.id || `mem-${idx}`} className="flex items-center justify-between rounded-2xl border border-white/5 bg-background/40 p-4 transition-all hover:bg-white/5 hover:border-primary/20 group">
+              <div className="flex items-center gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted/30 text-muted-foreground group-hover:text-primary transition-colors">
+                  <Shield className="h-5 w-5" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium">{member.user?.name || 'Loading...'}</p>
-                  <p className="text-[10px] text-muted-foreground">{member.user?.email}</p>
+                  <p className="text-sm font-bold group-hover:text-foreground transition-colors">{member.user?.name || 'Loading...'}</p>
+                  <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest opacity-60">{member.user?.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-[10px] opacity-70">MEMBER</Badge>
+              <div className="flex items-center gap-4">
+                <Badge variant="outline" className="text-[9px] font-black tracking-widest opacity-40 group-hover:opacity-100 transition-opacity">WORKER</Badge>
                 {canManage && (
                   <button
                     onClick={() => handleRemoveMember(member.userId)}
-                    className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                    className="p-2 text-muted-foreground hover:text-destructive transition-colors rounded-lg hover:bg-destructive/10"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -115,44 +131,56 @@ export function ProjectTeam({ project, onRefresh }: ProjectTeamProps) {
           ))}
 
           {(!project.members || project.members.length === 0) && (
-            <p className="py-4 text-center text-xs text-muted-foreground italic">
-              No additional workers assigned yet.
-            </p>
+            <div className="py-8 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
+              <p className="text-[10px] uppercase font-mono tracking-[0.2em] text-muted-foreground/40">
+                Single operator deployment.
+              </p>
+            </div>
           )}
         </div>
 
         {/* Pending Invites (Admin Only) */}
         {canManage && (
-          <div className="pt-2 border-t border-border/40">
+          <div className="pt-2">
             <ProjectInvites projectId={project.id} onRefresh={onRefresh} />
           </div>
         )}
 
         {/* Invite Form */}
         {canManage && (
-          <form onSubmit={handleAddMember} className="pt-2">
-            <div className="flex flex-col gap-2">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground ml-1">
-                Invite Colleague
+          <form onSubmit={handleAddMember} className="pt-4 border-t border-white/10">
+            <div className="flex flex-col gap-3">
+              <label className="text-[10px] font-black uppercase tracking-[0.25em] text-primary/70 ml-1">
+                Deploy Site Personnel
               </label>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@koen.app"
-                  className="h-10 flex-1 rounded-xl border border-border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-yellow-500/20"
+                  className="h-12 flex-1 rounded-xl border border-white/10 bg-background/50 px-4 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   required
                 />
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="bg-yellow-400 font-bold text-black hover:bg-yellow-500 h-10 px-4"
+                <Button 
+                  type="submit" 
+                  disabled={submitting} 
+                  className="bg-primary font-black text-black hover:bg-primary/90 h-12 px-6 rounded-xl gold-glow"
                 >
-                  {submitting ? '...' : <UserPlus className="h-4 w-4" />}
+                  {submitting ? '...' : <UserPlus className="h-5 w-5" />}
                 </Button>
               </div>
-              {error && <p className="text-[10px] text-red-500 ml-1">{error}</p>}
+              <AnimatePresence>
+                {error && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-[10px] font-bold text-destructive uppercase tracking-wider ml-1"
+                  >
+                    {error}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
           </form>
         )}

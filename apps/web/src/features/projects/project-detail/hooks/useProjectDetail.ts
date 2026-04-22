@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 import { ExtractedData, Language, Project, VoiceRecord } from '@/types';
 
@@ -370,6 +371,9 @@ export function useProjectDetail(projectId: string) {
       setRecords((current) => updateExtractedItem(current, updatedItem));
       setEditingItemId((current) => (current === item.id ? null : current));
       vibrateConfirm();
+      toast.success('Site Intel Confirmed', {
+        description: `${item.category.toUpperCase()} baseline saved to ledger.`,
+      });
     } catch (err) {
       console.error('Failed to confirm extracted item', err);
       setStatusNotice({

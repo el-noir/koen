@@ -37,32 +37,27 @@ export function ConfirmationCard({
   const draft = drafts[item.id] || getEditableDraft(item);
 
   return (
-    <Card className="border-yellow-500/40 bg-card/80 shadow-sm">
+    <Card className="border-primary/40 bg-card/80 shadow-sm">
       <CardContent className="p-4">
         <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-2">
-            <Badge variant="outline" className="border-yellow-500/50 bg-yellow-500/5 text-[10px] uppercase tracking-widest text-yellow-600">
-              {compact ? `Review ${formatCategoryLabel(item.category)}` : `Confirm ${formatCategoryLabel(item.category)}`}
+          <div className="flex-1 space-y-1.5">
+            <Badge variant="outline" className="border-primary/50 bg-primary/5 text-[9px] font-black uppercase tracking-widest text-primary h-5 px-2">
+              {formatCategoryLabel(item.category)}
             </Badge>
-            <div className="text-sm font-medium text-foreground">
+            <div className="text-sm font-bold tracking-tight text-foreground">
               {formatExtractedContent(item)}
             </div>
-            {transcript && (
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Heard in recording: &ldquo;{transcript}&rdquo;
-              </p>
-            )}
           </div>
 
           <div className="flex shrink-0 flex-wrap gap-2">
             <Button
               size="sm"
-              className="bg-yellow-400 font-semibold text-black hover:bg-yellow-500"
+              className="bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
               disabled={isSaving}
               onClick={() => void saveConfirmation(item)}
             >
-              {isSaving ? <LoaderCircle className="mr-2 h-3.5 w-3.5 animate-spin" /> : <Check className="mr-2 h-3.5 w-3.5" />}
-              Looks right
+              {isSaving ? <LoaderCircle className="mr-2 h-3 w-3 animate-spin" /> : <Check className="mr-2 h-3.5 w-3.5" />}
+              CONFIRM
             </Button>
             <Button
               size="sm"
@@ -70,8 +65,7 @@ export function ConfirmationCard({
               disabled={isSaving}
               onClick={() => startEditing(item)}
             >
-              <Pencil className="mr-2 h-3.5 w-3.5" />
-              Edit
+              EDIT
             </Button>
           </div>
         </div>
@@ -89,7 +83,7 @@ export function ConfirmationCard({
 
             {item.category === 'note' && (
               <textarea
-                className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                className="min-h-20 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="Note"
                 value={draft.text}
                 onChange={(event) => updateDraftValue(item.id, 'text', event.target.value)}
@@ -98,7 +92,7 @@ export function ConfirmationCard({
 
             {item.category === 'task' && (
               <input
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="Location"
                 value={draft.location}
                 onChange={(event) => updateDraftValue(item.id, 'location', event.target.value)}
@@ -108,19 +102,19 @@ export function ConfirmationCard({
             {item.category === 'material' && (
               <div className="grid gap-3 md:grid-cols-3">
                 <input
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                   placeholder="Quantity"
                   value={draft.quantity}
                   onChange={(event) => updateDraftValue(item.id, 'quantity', event.target.value)}
                 />
                 <input
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                   placeholder="Unit"
                   value={draft.unit}
                   onChange={(event) => updateDraftValue(item.id, 'unit', event.target.value)}
                 />
                 <input
-                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                  className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                   placeholder="Supplier"
                   value={draft.supplier}
                   onChange={(event) => updateDraftValue(item.id, 'supplier', event.target.value)}
@@ -130,7 +124,7 @@ export function ConfirmationCard({
 
             {item.category === 'event' && (
               <input
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                 placeholder="Date or timing"
                 value={draft.date}
                 onChange={(event) => updateDraftValue(item.id, 'date', event.target.value)}
@@ -141,26 +135,26 @@ export function ConfirmationCard({
               <>
                 <div className="grid gap-3 md:grid-cols-3">
                   <input
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                     placeholder="Start"
                     value={draft.start}
                     onChange={(event) => updateDraftValue(item.id, 'start', event.target.value)}
                   />
                   <input
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                     placeholder="End"
                     value={draft.end}
                     onChange={(event) => updateDraftValue(item.id, 'end', event.target.value)}
                   />
                   <input
-                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                    className="rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                     placeholder="Workers"
                     value={draft.workers}
                     onChange={(event) => updateDraftValue(item.id, 'workers', event.target.value)}
                   />
                 </div>
                 <input
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-yellow-500/40"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
                   placeholder="Notes"
                   value={draft.notes}
                   onChange={(event) => updateDraftValue(item.id, 'notes', event.target.value)}
@@ -179,7 +173,7 @@ export function ConfirmationCard({
               </Button>
               <Button
                 size="sm"
-                className="bg-yellow-400 font-semibold text-black hover:bg-yellow-500"
+                className="bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
                 disabled={isSaving}
                 onClick={() => void saveConfirmation(item, { useDraft: true })}
               >
@@ -187,6 +181,12 @@ export function ConfirmationCard({
                 Save
               </Button>
             </div>
+          </div>
+        )}
+        
+        {transcript && !isEditing && (
+          <div className="mt-3 border-t border-border/10 pt-2 text-[10px] font-medium leading-relaxed text-muted-foreground/40 italic">
+            &ldquo;{transcript}&rdquo;
           </div>
         )}
       </CardContent>

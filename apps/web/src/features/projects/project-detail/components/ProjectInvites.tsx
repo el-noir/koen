@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Invitation, UserRole, InvitationStatus } from '@/types';
 import { api } from '@/services/api';
 import { XCircle, Mail, User as UserIcon, Clock, CheckCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface ProjectInvitesProps {
   projectId: string;
@@ -34,11 +35,16 @@ export function ProjectInvites({ projectId, onRefresh }: ProjectInvitesProps) {
     setRevokingId(id);
     try {
       await api.revokeInvitation(id);
+      toast.success('Invitation Revoked', {
+        description: 'Site access invitation has been invalidated.',
+      });
       await fetchInvites();
       onRefresh?.();
     } catch (err) {
       console.error('Failed to revoke invite', err);
-      alert('Could not revoke invitation. Try again.');
+      toast.error('Revocation Failed', {
+        description: 'Could not revoke invitation. Try again.',
+      });
     } finally {
       setRevokingId(null);
     }

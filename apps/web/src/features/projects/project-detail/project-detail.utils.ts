@@ -105,40 +105,37 @@ export function getProcessingBadgeClass(record: VoiceRecord) {
 export function formatLatestCaptureTitle(capture: CaptureFlow, record?: VoiceRecord | null) {
   switch (capture.phase) {
     case 'uploading':
-      return 'Sending note to KOEN';
+      return 'Uploading...';
     case 'queued_offline':
-      return 'Note saved offline';
+      return 'Offline (Queued)';
     case 'processing':
-      return 'Turning note into site updates';
+      return 'Processing...';
     case 'processed':
       return record?.processingStatus === 'needs_confirmation'
-        ? 'Latest note needs a quick review'
-        : 'Latest note is ready';
+        ? 'Review Required'
+        : 'Update Saved';
     case 'error':
     default:
-      return 'Latest note could not be sent';
+      return 'Capture Failed';
   }
 }
 
 export function formatLatestCaptureDetail(capture: CaptureFlow, record?: VoiceRecord | null) {
   switch (capture.phase) {
     case 'uploading':
-      return 'Uploading the recording now. Keep working while KOEN takes it from here.';
+      return 'Syncing recording to site ledger.';
     case 'queued_offline':
-      return 'The note is safe on this device and will sync automatically when the connection returns.';
+      return 'Safe on device. Syncing when online.';
     case 'processing':
-      return record?.transcript?.trim()
-        ? 'KOEN heard the note. Structured data will appear as soon as extraction finishes.'
-        : 'KOEN is transcribing the note first, then it will extract the site updates.';
+      return 'Extracting baseline data...';
     case 'processed':
       if (record?.processingStatus === 'needs_confirmation') {
-        return 'KOEN extracted the note, but some items need a quick confirm before you move on.';
+        return 'Ready for verification below.';
       }
-
-      return 'Transcript and extracted data are ready below.';
+      return 'Site intel successfully logged.';
     case 'error':
     default:
-      return capture.errorMessage || 'The note could not be uploaded right now. Try again in a moment.';
+      return capture.errorMessage || 'Network error. Please retry.';
   }
 }
 
@@ -160,26 +157,24 @@ export function getLatestCaptureCardClass(capture: CaptureFlow) {
 export function formatPrimaryRecordTitle(record: VoiceRecord) {
   switch (record.processingStatus) {
     case 'needs_confirmation':
-      return 'Latest note needs a quick review';
+      return 'Review Required';
     case 'processing':
-      return 'Latest note is still processing';
+      return 'Processing...';
     case 'processed':
     default:
-      return 'Latest note is ready';
+      return 'Update Saved';
   }
 }
 
 export function formatPrimaryRecordDetail(record: VoiceRecord) {
   switch (record.processingStatus) {
     case 'needs_confirmation':
-      return 'KOEN extracted the note, but a few items still need a quick confirmation.';
+      return 'Ready for baseline verification.';
     case 'processing':
-      return record.transcript.trim()
-        ? 'KOEN heard the note and is still building the structured result.'
-        : 'KOEN is still transcribing and extracting this note.';
+      return 'Structuring recorded intel...';
     case 'processed':
     default:
-      return 'Transcript and structured data are ready below.';
+      return 'Data logged to the site ledger.';
   }
 }
 
