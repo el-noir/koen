@@ -94,19 +94,25 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-10">
-      <header className="mb-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+    <div className="min-h-screen bg-transparent p-6 lg:p-10">
+      <header className="relative mb-12 flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="absolute -left-10 -top-10 h-32 w-32 border-l border-t border-primary/20 pointer-events-none" />
         <div className="flex items-center gap-5">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-black shadow-lg gold-glow"
+            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-black shadow-lg gold-glow structural-corner"
           >
             <UserIcon className="h-7 w-7" />
           </motion.div>
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">Hi, {user?.name.split(' ')[0]}</h1>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground opacity-60">KOEN SITE ASSISTANT // {user?.role}</p>
+            <div className="flex items-center gap-2">
+              <div className="led-pulse led-green h-1.5 w-1.5" />
+              <p className="text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-primary opacity-80">
+                SYSTEM.ACTIVE // {user?.role}.AUTHORIZED // ID_{user?.id.slice(0, 4)}
+              </p>
+            </div>
           </div>
         </div>
         
@@ -266,31 +272,38 @@ export default function ProjectsPage() {
                 visible: { opacity: 1, y: 0 }
               }}
             >
-              <Link href={`/projects/${project.id}`} className="group block">
-                <Card className="h-full border-border/40 bg-card/30 glass-dark transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-2xl hover:bg-card/50 industrial-shadow group relative overflow-hidden">
-                  <div className="absolute top-0 left-0 w-1 h-0 bg-primary group-hover:h-full transition-all duration-500" />
+              <Link href={`/projects/${project.id}`} className="group block h-full">
+                <Card className="h-full border-border/40 bg-card/30 glass-dark transition-all duration-300 hover:border-primary/40 hover:-translate-y-1.5 hover:shadow-2xl hover:bg-card/50 industrial-shadow group relative overflow-hidden structural-corner">
+                  <div className="absolute top-0 right-0 p-4 opacity-[0.05] pointer-events-none group-hover:opacity-[0.08] transition-opacity">
+                    <span className="text-4xl font-black font-mono uppercase tracking-tighter">ID_{project.id.slice(0, 4)}</span>
+                  </div>
                   
-                  <CardHeader className="pb-4">
-                    <div className="mb-4 flex items-start justify-between">
-                      <Badge variant="outline" className="border-primary/40 bg-primary/5 text-[9px] font-black uppercase tracking-[0.2em] text-primary">
-                        {project.stage}
-                      </Badge>
-                      <Folder className="h-4 w-4 text-muted-foreground/40 transition-colors group-hover:text-primary/70" />
+                  <CardHeader className="pb-4 relative">
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className={`led-pulse ${project.stage === 'foundations' ? 'led-blue' : project.stage === 'finishing' ? 'led-green' : 'led-amber'} h-2 w-2`} />
+                        <Badge variant="outline" className="border-primary/20 bg-primary/5 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-primary">
+                          STG.{project.stage.slice(0, 3)}
+                        </Badge>
+                      </div>
+                      <Folder className="h-4 w-4 text-muted-foreground/30 transition-colors group-hover:text-primary/70" />
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight transition-colors group-hover:text-foreground">
                       {project.name}
                     </CardTitle>
-                    <CardDescription className="text-[10px] font-black uppercase tracking-[0.25em] text-muted-foreground/60">
-                      {project.client}
+                    <CardDescription className="text-[10px] font-mono font-black uppercase tracking-[0.25em] text-muted-foreground/40">
+                      CLIENT // {project.client}
                     </CardDescription>
                   </CardHeader>
                   
                   <CardFooter className="flex items-center justify-between pt-0 text-[10px] font-mono uppercase tracking-widest text-muted-foreground/40">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(project.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                    <div className="flex items-center gap-2 border-t border-border/10 pt-4 w-full justify-between">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-3 w-3 text-primary/40" />
+                        <span>EST.{new Date(project.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase()}</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 text-primary" />
                     </div>
-                    <ChevronRight className="h-4 w-4 -translate-x-2 opacity-0 transition-all group-hover:translate-x-0 group-hover:opacity-100 text-primary" />
                   </CardFooter>
                 </Card>
               </Link>

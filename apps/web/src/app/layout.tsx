@@ -53,7 +53,8 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300">
+      <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300 relative">
+        <div className="fixed inset-0 blueprint-grid z-[-1]" />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

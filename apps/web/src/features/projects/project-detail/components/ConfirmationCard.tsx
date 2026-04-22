@@ -37,35 +37,39 @@ export function ConfirmationCard({
   const draft = drafts[item.id] || getEditableDraft(item);
 
   return (
-    <Card className="border-primary/40 bg-card/80 shadow-sm">
+    <Card className="border-primary/20 bg-card/30 industrial-shadow structural-corner relative overflow-hidden">
       <CardContent className="p-4">
         <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex-1 space-y-1.5">
-            <Badge variant="outline" className="border-primary/50 bg-primary/5 text-[9px] font-black uppercase tracking-widest text-primary h-5 px-2">
-              {formatCategoryLabel(item.category)}
-            </Badge>
-            <div className="text-sm font-bold tracking-tight text-foreground">
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="led-pulse led-amber h-1.5 w-1.5" />
+              <Badge variant="outline" className="border-primary/40 bg-primary/5 text-[9px] font-mono font-black uppercase tracking-widest text-primary h-5 px-3">
+                {formatCategoryLabel(item.category)}
+              </Badge>
+            </div>
+            <div className="text-[13px] font-mono font-bold tracking-tight text-foreground leading-relaxed">
               {formatExtractedContent(item)}
             </div>
           </div>
-
-          <div className="flex shrink-0 flex-wrap gap-2">
+ 
+          <div className="flex shrink-0 flex-wrap gap-2 pt-1">
             <Button
               size="sm"
-              className="bg-primary font-semibold text-primary-foreground hover:bg-primary/90"
+              className="bg-primary h-8 px-4 font-mono font-black text-[10px] text-black hover:bg-primary/90 structural-corner"
               disabled={isSaving}
               onClick={() => void saveConfirmation(item)}
             >
               {isSaving ? <LoaderCircle className="mr-2 h-3 w-3 animate-spin" /> : <Check className="mr-2 h-3.5 w-3.5" />}
-              CONFIRM
+              [CONFIRM]
             </Button>
             <Button
               size="sm"
               variant="outline"
+              className="h-8 px-4 font-mono font-black text-[10px] border-primary/20 hover:bg-primary/5 text-primary/70"
               disabled={isSaving}
               onClick={() => startEditing(item)}
             >
-              EDIT
+              [EDIT]
             </Button>
           </div>
         </div>
@@ -185,8 +189,13 @@ export function ConfirmationCard({
         )}
         
         {transcript && !isEditing && (
-          <div className="mt-3 border-t border-border/10 pt-2 text-[10px] font-medium leading-relaxed text-muted-foreground/40 italic">
-            &ldquo;{transcript}&rdquo;
+          <div className="mt-3 border-t border-primary/10 pt-2">
+            <div className="mb-1 text-[8px] font-mono font-black uppercase tracking-widest text-primary/30">
+              [SYS.AUDIBLE_LOG]
+            </div>
+            <p className="text-[10px] font-mono leading-relaxed text-muted-foreground/40 italic">
+              &ldquo;{transcript}&rdquo;
+            </p>
           </div>
         )}
       </CardContent>

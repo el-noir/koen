@@ -88,7 +88,11 @@ export function LatestNoteSection({
       animate="visible"
       variants={containerVariants}
     >
-      <Card className={`overflow-hidden glass-dark border-primary/20 industrial-shadow ${latestCapture ? getLatestCaptureCardClass(latestCapture) : getPrimaryRecordCardClass(primaryRecord!)}`}>
+      <Card className={`overflow-hidden bg-card/30 glass-dark border-primary/20 industrial-shadow structural-corner relative ${latestCapture ? getLatestCaptureCardClass(latestCapture) : getPrimaryRecordCardClass(primaryRecord!)}`}>
+        {/* Schematic Crosshairs */}
+        <div className="absolute top-1.5 left-1.5 text-[9px] text-primary/20 font-mono">+</div>
+        <div className="absolute top-1.5 right-1.5 text-[9px] text-primary/20 font-mono">+</div>
+
         <CardContent className="p-5">
           <div className="flex items-start gap-4">
             <motion.div
@@ -97,20 +101,20 @@ export function LatestNoteSection({
             >
               {latestCapture ? (
                 latestCapture.phase === 'queued_offline' ? (
-                  <CloudOff className="h-6 w-6 text-primary" />
+                  <div className="led-pulse led-amber h-5 w-5 border border-amber-500/20 rounded-full flex items-center justify-center"><CloudOff className="h-3 w-3" /></div>
                 ) : latestCapture.phase === 'processed' ? (
-                  <Check className="h-6 w-6 text-emerald-500" />
+                  <div className="led-pulse led-green h-5 w-5 border border-emerald-500/20 rounded-full flex items-center justify-center"><Check className="h-3 w-3" /></div>
                 ) : latestCapture.phase === 'error' ? (
-                  <AlertCircle className="h-6 w-6 text-destructive" />
+                  <div className="led-pulse led-red h-5 w-5 border border-red-500/20 rounded-full flex items-center justify-center"><AlertCircle className="h-3 w-3" /></div>
                 ) : (
-                  <LoaderCircle className="h-6 w-6 animate-spin text-primary" />
+                  <div className="led-pulse led-blue h-5 w-5 border border-blue-500/20 rounded-full flex items-center justify-center"><LoaderCircle className="h-3 w-3 animate-spin" /></div>
                 )
               ) : primaryRecord?.processingStatus === 'needs_confirmation' ? (
-                <AlertCircle className="h-6 w-6 text-primary" />
+                <div className="led-pulse led-amber h-5 w-5 border border-amber-500/20 rounded-full flex items-center justify-center"><AlertCircle className="h-3 w-3" /></div>
               ) : primaryRecord?.processingStatus === 'processing' ? (
-                <LoaderCircle className="h-6 w-6 animate-spin text-primary" />
+                <div className="led-pulse led-blue h-5 w-5 border border-blue-500/20 rounded-full flex items-center justify-center"><LoaderCircle className="h-3 w-3 animate-spin" /></div>
               ) : (
-                <Check className="h-6 w-6 text-emerald-500" />
+                <div className="led-pulse led-green h-5 w-5 border border-emerald-500/20 rounded-full flex items-center justify-center"><Check className="h-3 w-3" /></div>
               )}
             </motion.div>
 
@@ -118,29 +122,28 @@ export function LatestNoteSection({
               <motion.div variants={itemVariants} className="space-y-3">
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                      {latestCapture ? 'LIVE CAPTURE' : 'SITE LEDGER'}
+                    <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-primary">
+                      {latestCapture ? '[INTEL.LIVE_CAP]' : '[SITE.LEDGER_SYNC]'}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono font-bold text-muted-foreground/40 uppercase tracking-widest">
-                    {formatShortTime(latestCapture?.startedAt || primaryRecord!.createdAt)}
+                  <span className="text-[10px] font-mono font-bold text-muted-foreground/30 uppercase tracking-widest border-l border-white/5 pl-4">
+                    T_{formatShortTime(latestCapture?.startedAt || primaryRecord!.createdAt)}
                   </span>
                   {!latestCapture && primaryRecord && (
                     <Badge
                       variant="outline"
-                      className={`text-[9px] font-mono font-black uppercase tracking-wider h-5 ${getProcessingBadgeClass(primaryRecord)}`}
+                      className={`text-[9px] font-mono font-black uppercase tracking-wider h-5 px-3 border-primary/20 ${getProcessingBadgeClass(primaryRecord)}`}
                     >
                       {getProcessingLabel(primaryRecord)}
                     </Badge>
                   )}
                 </div>
-                <h2 className="text-xl font-bold tracking-tight text-foreground">
+                <h2 className="text-xl font-bold tracking-tight text-foreground uppercase">
                   {latestCapture
                     ? formatLatestCaptureTitle(latestCapture, latestCaptureRecord)
                     : formatPrimaryRecordTitle(primaryRecord!)}
                 </h2>
-                <div className="text-[11px] font-medium leading-relaxed text-muted-foreground/60 uppercase tracking-wide">
+                <div className="text-[11px] font-mono font-medium leading-relaxed text-muted-foreground/40 uppercase tracking-wide">
                   {latestCapture
                     ? formatLatestCaptureDetail(latestCapture, latestCaptureRecord)
                     : formatPrimaryRecordDetail(primaryRecord!)}
@@ -151,12 +154,12 @@ export function LatestNoteSection({
                 {primaryRecord?.transcript?.trim() && (
                   <motion.div
                     variants={itemVariants}
-                    className="rounded-xl border border-border/20 bg-muted/20 p-3 opacity-80"
+                    className="rounded-xl border border-primary/10 bg-muted/20 p-3 opacity-80 structural-corner"
                   >
-                    <div className="mb-1 text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">
-                      HEARD
+                    <div className="mb-1 text-[9px] font-mono font-black uppercase tracking-[0.2em] text-muted-foreground/40">
+                      SYS.AUDIBLE_CONTEXT
                     </div>
-                    <p className="text-[11px] leading-relaxed text-foreground/70 italic">
+                    <p className="text-[11px] font-mono leading-relaxed text-foreground/70 italic">
                       &ldquo;{primaryRecord.transcript}&rdquo;
                     </p>
                   </motion.div>
@@ -165,29 +168,29 @@ export function LatestNoteSection({
                 {primaryRecord?.extracted && primaryRecord.extracted.length > 0 && (
                   <motion.div
                     variants={itemVariants}
-                    className="rounded-2xl border border-border/40 bg-muted/40 p-4 industrial-shadow"
+                    className="rounded-xl border border-primary/10 bg-muted/20 p-4 industrial-shadow structural-corner"
                   >
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                        EXTRACTED INTEL
+                    <div className="mb-4 flex items-center justify-between">
+                      <div className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-primary">
+                        DATA.EXTRACTED_INTEL
                       </div>
                     </div>
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {primaryRecord.extracted.map((item, idx) => (
                         <motion.div
                           key={item.id || `ext-${idx}`}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: 0.3 + idx * 0.05 }}
-                          className="flex items-start gap-4 rounded-xl border border-border/40 bg-card/60 p-3"
+                          className="flex items-start gap-4 rounded-lg border border-white/5 bg-card/60 p-3"
                         >
                           <Badge
                             variant="outline"
-                            className="min-w-24 justify-center border-primary/20 bg-primary/5 text-[9px] font-black uppercase tracking-wider text-primary"
+                            className="min-w-24 justify-center border-primary/10 bg-primary/5 text-[9px] font-mono font-black uppercase tracking-wider text-primary/70"
                           >
                             {formatCategoryLabel(item.category)}
                           </Badge>
-                          <div className="flex-1 text-sm leading-relaxed text-foreground/90">
+                          <div className="flex-1 text-[11px] font-mono leading-relaxed text-foreground/80">
                             {formatExtractedContent(item)}
                           </div>
                         </motion.div>
@@ -199,9 +202,10 @@ export function LatestNoteSection({
                 {primaryRecordConfirmations.length > 0 && (
                   <motion.div variants={itemVariants} className="space-y-3 pt-1">
                     <div className="flex items-center justify-between gap-3 px-1">
-                      <div className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">
-                        PENDING REVIEW
+                      <div className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-primary">
+                        SYS.PENDING_REVIEW
                       </div>
+                      <div className="h-1 flex-1 border-t border-dashed border-primary/20" />
                     </div>
                     <div className="space-y-3">
                       {primaryRecordConfirmations.map((confirmation, idx) => (
@@ -226,9 +230,9 @@ export function LatestNoteSection({
               {primaryRecord && !primaryRecord.transcript.trim() && primaryRecord.processingStatus === 'processing' && (
                 <motion.div
                   variants={itemVariants}
-                  className="rounded-2xl border border-border/40 bg-muted/40 p-4 text-[10px] uppercase font-mono tracking-widest text-primary/40 animate-pulse"
+                  className="rounded-xl border border-primary/10 bg-muted/20 p-4 text-[9px] uppercase font-mono tracking-widest text-primary/30 animate-pulse structural-corner"
                 >
-                  Analyzing audio telemetry...
+                  SYSTEM.ANALYZING_TELEMETRY...
                 </motion.div>
               )}
             </div>

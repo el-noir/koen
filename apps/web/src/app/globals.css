@@ -114,6 +114,16 @@
 }
 
 @layer utilities {
+  .blueprint-grid {
+    background-image: radial-gradient(circle, var(--primary) 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
+    background-position: center;
+    opacity: 0.03;
+    pointer-events: none;
+  }
+  .dark .blueprint-grid {
+    opacity: 0.05;
+  }
   .glass {
     @apply bg-background/70 backdrop-blur-md border border-black/5 dark:border-white/10;
   }
@@ -126,4 +136,30 @@
   .gold-glow {
     @apply shadow-[0_0_20px_-5px_hsla(45,100%,50%,0.3)];
   }
+
+  /* Hardware UI Utilities */
+  .structural-corner {
+    background: 
+      linear-gradient(to right, var(--primary) 2px, transparent 2px) 0 0,
+      linear-gradient(to bottom, var(--primary) 2px, transparent 2px) 0 0,
+      linear-gradient(to left, var(--primary) 2px, transparent 2px) 100% 100%,
+      linear-gradient(to top, var(--primary) 2px, transparent 2px) 100% 100%;
+    background-repeat: no-repeat;
+    background-size: 12px 12px;
+  }
+  
+  .led-pulse {
+    @apply relative flex h-2 w-2 rounded-full;
+  }
+  .led-pulse::after {
+    @apply absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 content-[''];
+  }
+  .led-green { @apply bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]; }
+  .led-green::after { @apply bg-emerald-400; }
+  .led-amber { @apply bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]; }
+  .led-amber::after { @apply bg-amber-400; }
+  .led-red { @apply bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]; }
+  .led-red::after { @apply bg-red-400; }
+  .led-blue { @apply bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]; }
+  .led-blue::after { @apply bg-blue-400; }
 }
