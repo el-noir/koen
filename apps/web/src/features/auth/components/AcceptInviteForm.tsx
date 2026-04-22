@@ -111,11 +111,29 @@ export function AcceptInviteForm() {
           </div>
           <CardTitle className="text-2xl font-bold tracking-tight text-white">Accept Invitation</CardTitle>
           <CardDescription className="text-muted-foreground">
-            Complete your profile to join the team on <span className="text-white font-medium">{invitation?.email}</span>
+            {invitation?.isExistingUser 
+              ? 'Your account has been verified. Accept the invitation to join the site ledger.'
+              : `Complete your profile to join the team on ${invitation?.email}`}
           </CardDescription>
         </CardHeader>
         
-        <form onSubmit={handleSubmit}>
+        {invitation?.isExistingUser ? (
+          <CardContent className="space-y-6 pt-4 text-center">
+             <div className="flex flex-col items-center gap-3 p-6 rounded-2xl border border-emerald-500/10 bg-emerald-500/5">
+                <p className="text-sm font-medium text-emerald-400">Account Recognized</p>
+                <p className="text-xs text-muted-foreground/60 leading-relaxed">
+                  You are already a KOEN operative. Joining this site will add its telemetry to your dashboard.
+                </p>
+             </div>
+             <Button
+                onClick={() => router.push('/login')}
+                className="h-12 w-full rounded-xl bg-emerald-500 font-bold text-black hover:bg-emerald-500/90"
+              >
+                Sign In to Accept & Join Team
+              </Button>
+          </CardContent>
+        ) : (
+          <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4 pt-4">
             {error && (
               <div className="rounded-xl border border-red-500/20 bg-red-500/10 p-3 text-center text-sm font-medium text-red-500">
@@ -186,6 +204,7 @@ export function AcceptInviteForm() {
             </p>
           </CardFooter>
         </form>
+        )}
       </Card>
     </div>
   );

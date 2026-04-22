@@ -43,7 +43,7 @@ export function ProjectTeam({ project, onRefresh }: ProjectTeamProps) {
       console.error(err);
       setError(err.message || 'Could not add member. Make sure the email is correct.');
       toast.error('Deployment Failed', {
-        description: 'Ensure the email address is valid.',
+        description: err.message || 'Ensure the email address is valid.',
       });
     } finally {
       setSubmitting(false);
@@ -62,7 +62,7 @@ export function ProjectTeam({ project, onRefresh }: ProjectTeamProps) {
     } catch (err: any) {
       console.error(err);
       toast.error('Revocation Failed', {
-        description: 'Could not remove member at this time.',
+        description: err.message || 'Could not remove member at this time.',
       });
     }
   }

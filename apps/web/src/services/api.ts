@@ -21,7 +21,15 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(payload?.message || `API Error: ${response.statusText}`);
+    let message = payload?.message || `API Error: ${response.statusText}`;
+    
+    if (Array.isArray(message)) {
+      message = message.join(', ');
+    } else if (typeof message === 'object') {
+      message = JSON.stringify(message);
+    }
+    
+    throw new Error(message);
   }
 
   return payload?.data ?? payload;

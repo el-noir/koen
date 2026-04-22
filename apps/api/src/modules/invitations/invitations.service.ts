@@ -22,9 +22,9 @@ export class InvitationsService {
       where: { email: dto.email },
     });
 
-    if (existingUser) {
-      throw new ConflictException('A user with this email already exists');
-    }
+    // If they already exist, we'll still send an invitation but the "Accept" flow 
+    // will intelligently handle adding them to the project instead of signing them up.
+    // This allows project-based access for existing site personnel.
 
     // Deactivate any existing pending invitations for this email
     await this.prisma.invitation.updateMany({
@@ -84,7 +84,14 @@ export class InvitationsService {
       throw new BadRequestException('Invitation token has expired');
     }
 
-    return invitation;
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: invitation.email },
+    });
+
+    return {
+      ...invitation,
+      isExistingUser: !!existingUser,
+    };
   }
 
   async accept(token: string) {

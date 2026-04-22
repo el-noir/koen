@@ -7,6 +7,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser, UserContext } from '../auth/decorators/current-user.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 
 @ApiTags('invitations')
 @ApiBearerAuth()
@@ -46,6 +47,7 @@ export class InvitationsController {
   }
 
   @Get(':token')
+  @Public()
   @ApiOperation({ summary: 'Validate an invitation token (Public)' })
   validate(@Param('token') token: string) {
     return this.invitationsService.validateToken(token);
