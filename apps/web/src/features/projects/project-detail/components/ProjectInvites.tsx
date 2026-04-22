@@ -54,29 +54,29 @@ export function ProjectInvites({ projectId, onRefresh }: ProjectInvitesProps) {
   if (invites.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 flex items-center gap-2">
+    <div className="space-y-4">
+      <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/60 flex items-center gap-2 ml-1">
         <Mail className="h-3 w-3" />
-        Pending Invitations
+        Personnel Deployment Queue
       </h3>
       
-      <div className="space-y-2">
+      <div className="space-y-3">
         {invites.filter(inv => inv.status === InvitationStatus.PENDING).map((invite) => (
           <div 
             key={invite.id} 
-            className="flex items-center justify-between group rounded-lg border border-border/50 bg-muted/30 p-3 transition-all hover:border-border hover:bg-muted/50"
+            className="flex items-center justify-between group rounded-xl border border-primary/10 bg-primary/5 p-4 transition-all hover:border-primary/30 hover:bg-primary/10"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-background border border-border shadow-sm">
-                <Mail className="h-4 w-4 text-muted-foreground" />
+            <div className="flex items-center gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-background border border-primary/20 gold-glow">
+                <Mail className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">{invite.email}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] font-mono uppercase text-muted-foreground bg-background px-1.5 py-0.5 rounded border border-border">
+                <p className="text-sm font-black tracking-tight text-white">{invite.email}</p>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-[9px] font-mono font-bold uppercase text-primary/80 bg-primary/10 px-2 py-0.5 rounded border border-primary/20 tracking-widest">
                     {invite.role}
                   </span>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <span className="text-[9px] font-mono text-muted-foreground/40 flex items-center gap-1 uppercase tracking-widest">
                     <Clock className="h-3 w-3" />
                     Exp: {new Date(invite.expiresAt).toLocaleDateString()}
                   </span>
@@ -87,10 +87,14 @@ export function ProjectInvites({ projectId, onRefresh }: ProjectInvitesProps) {
             <button
               onClick={() => handleRevoke(invite.id)}
               disabled={revokingId === invite.id}
-              className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground hover:text-destructive transition-all rounded-md hover:bg-destructive/10 disabled:opacity-50"
+              className="opacity-0 group-hover:opacity-100 p-2 text-muted-foreground/40 hover:text-destructive transition-all rounded-xl hover:bg-destructive/10 disabled:opacity-50"
               title="Revoke Invitation"
             >
-              <XCircle className="h-4 w-4" />
+              {revokingId === invite.id ? (
+                <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              ) : (
+                <XCircle className="h-5 w-5" />
+              )}
             </button>
           </div>
         ))}
