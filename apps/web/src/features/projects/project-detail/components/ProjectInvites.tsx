@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Invitation, UserRole, InvitationStatus } from '@/types';
 import { api } from '@/services/api';
-import { XCircle, Mail, User as UserIcon, Clock, CheckCircle } from 'lucide-react';
+import { XCircle, Mail, User as UserIcon, Clock, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface ProjectInvitesProps {
