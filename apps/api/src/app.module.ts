@@ -9,6 +9,8 @@ import { AuthModule } from './modules/auth/auth.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { StorageModule } from './modules/storage/storage.module';
 import { EmailModule } from './modules/email/email.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 import configuration from './config/configuration';
 
 @Module({
@@ -28,5 +30,8 @@ import configuration from './config/configuration';
     StorageModule,
     EmailModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule { }
+
