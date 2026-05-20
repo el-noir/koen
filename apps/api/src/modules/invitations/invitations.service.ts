@@ -2,7 +2,7 @@ import { Injectable, ConflictException, NotFoundException, BadRequestException }
 import { PrismaService } from '../../database/prisma.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { InvitationStatus } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import { EmailService } from '../email/email.service';
 
@@ -37,7 +37,7 @@ export class InvitationsService {
       },
     });
 
-    const token = uuidv4();
+    const token = randomUUID();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 3); // 3 days expiry as per request
 
