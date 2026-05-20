@@ -1,0 +1,16 @@
+# Railway Deployment Configuration for KOEN
+# stage-1: April 2026
+
+[build]
+builder = "NIXPACKS"
+buildCommand = "npm run build"
+
+[deploy]
+startCommand = "npm run start:prod"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 100
+restartPolicyType = "ON_FAILURE"
+
+[env]
+NODE_ENV = "production"
+PORT = "4000"
